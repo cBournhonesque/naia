@@ -10,6 +10,7 @@ use naia_bevy_demo_shared::{protocol::Protocol, Channels};
 use crate::resources::Global;
 
 pub fn init(mut commands: Commands, mut server: Server<Protocol, Channels>) {
+    let a: Server<Protocol, Channels> = server;
     info!("Naia Bevy Server Demo is running");
 
     // Naia Server initialization

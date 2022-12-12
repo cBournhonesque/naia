@@ -22,8 +22,8 @@ pub struct AckManager {
     next_packet_index: PacketIndex,
     // The last acked packet index of the packets we've sent to the remote host.
     last_recv_packet_index: PacketIndex,
-    // Using a `Hashmap` to track every packet we send out so we can ensure that we can resend when
-    // dropped.
+    // Using a `Hashmap` to track every packet we send out but that haven't been acked yet (so we
+    // might have to resend again)
     sent_packets: HashMap<PacketIndex, SentPacket>,
     // However, we can only reasonably ack up to `REDUNDANT_PACKET_ACKS_SIZE + 1` packets on each
     // message we send so this should be that large.
@@ -100,7 +100,7 @@ impl AckManager {
         }
     }
 
-    /// Records the packet with the given packet index
+    /// Records the sent packet with the given packet index
     fn track_packet(&mut self, packet_type: PacketType, packet_index: PacketIndex) {
         self.sent_packets
             .insert(packet_index, SentPacket { packet_type });

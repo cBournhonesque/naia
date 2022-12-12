@@ -11,6 +11,7 @@ use super::{
 };
 
 pub struct UnorderedUnreliableSender<P: Send> {
+    /// Buffer of messages that need to be sent
     outgoing_messages: VecDeque<P>,
 }
 
