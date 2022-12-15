@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use std::ops::{Deref, DerefMut};
 
 use naia_serde::{BitReader, BitWrite, BitWriter, Serde, SerdeErr};
@@ -11,6 +12,13 @@ pub struct Property<T: Serde> {
     inner: T,
     mutator: Option<PropertyMutator>,
     mutator_index: u8,
+}
+
+impl Display for Property<T>
+where T: Display {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.inner.fmt(f)
+    }
 }
 
 // should be shared
