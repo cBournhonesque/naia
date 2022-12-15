@@ -14,7 +14,7 @@ pub struct Property<T: Serde> {
     mutator_index: u8,
 }
 
-impl<T> Display for Property<T>
+impl<T: Serde> Display for Property<T>
 where T: Display {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         self.inner.fmt(f)
