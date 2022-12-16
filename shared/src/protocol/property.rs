@@ -1,6 +1,6 @@
 use std::any::Any;
-use std::fmt::{Display, Formatter};
-use std::ops::{Deref, DerefMut};
+use std::fmt::{Debug, Display, Formatter};
+use std::ops::{Deref, DerefMut, Add, AddAssign, Mul, MulAssign};
 
 use bevy_reflect::{Reflect, ReflectMut, ReflectOwned, ReflectRef, TypeInfo};
 use naia_serde::{BitReader, BitWrite, BitWriter, Serde, SerdeErr};
@@ -16,6 +16,52 @@ pub struct Property<T: Serde> {
     mutator_index: u8,
 }
 
+
+impl<T: Serde> Add for Property<T>
+where T: Add {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let res = self.clone();
+        *res.inner = self.inner + rhs.inner;
+        res
+    }
+}
+
+impl<T: Serde> AddAssign for Property<T>
+    where T: AddAssign {
+
+    fn add_assign(&mut self, rhs: Self) {
+        *res.inner += rhs.inner
+    }
+}
+
+impl<T: Serde> Mul<f32> for Property<T>
+    where T: Mul<f32> {
+    type Output = Self;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        let res = self.clone();
+        *res.inner = self.inner * rhs;
+        res
+    }
+}
+
+impl<T: Serde> MulAssign<f32> for Property<T>
+    where T: MulAssign {
+
+    fn mul_assign(&mut self, rhs: f32) {
+        *res.inner *= rhs
+    }
+}
+
+impl<T: Serde> Debug for Property<T>
+where T: Debug {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.inner.fmt(f)
+    }
+}
+
 impl<T: Serde> Display for Property<T>
 where T: Display {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -25,6 +71,7 @@ where T: Display {
 
 /// Implement default for Property<T>
 /// Note that this is invalid and shouldn't be used because the mutator_index is arbitrarily set to 0
+/// It's mostly useful for bevy_inspector_egui
 impl<T: Serde> Default for Property<T>
 where T: Default {
     fn default() -> Self {
