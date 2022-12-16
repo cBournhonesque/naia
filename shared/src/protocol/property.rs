@@ -23,7 +23,7 @@ where T: Add {
 
     fn add(self, rhs: Self) -> Self::Output {
         let res = self.clone();
-        *res.inner = self.inner + rhs.inner;
+        *res = self.inner + rhs.inner;
         res
     }
 }
@@ -32,7 +32,7 @@ impl<T: Serde> AddAssign for Property<T>
     where T: AddAssign {
 
     fn add_assign(&mut self, rhs: Self) {
-        *res.inner += rhs.inner
+        *res += rhs.inner
     }
 }
 
@@ -42,7 +42,7 @@ impl<T: Serde> Mul<f32> for Property<T>
 
     fn mul(self, rhs: f32) -> Self::Output {
         let res = self.clone();
-        *res.inner = self.inner * rhs;
+        *res = self.inner * rhs;
         res
     }
 }
@@ -51,7 +51,7 @@ impl<T: Serde> MulAssign<f32> for Property<T>
     where T: MulAssign {
 
     fn mul_assign(&mut self, rhs: f32) {
-        *res.inner *= rhs
+        *res *= rhs
     }
 }
 
