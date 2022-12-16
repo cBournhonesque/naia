@@ -1,8 +1,7 @@
-use std::any::Any;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Deref, DerefMut, Add, AddAssign, Mul, MulAssign};
 
-use bevy_reflect::{Reflect, ReflectMut, ReflectOwned, ReflectRef, TypeInfo};
+
 use naia_serde::{BitReader, BitWrite, BitWriter, Serde, SerdeErr};
 
 use crate::protocol::property_mutate::PropertyMutator;
@@ -79,64 +78,74 @@ where T: Default {
     }
 }
 
-impl<T: Serde> Reflect for Property<T>
-where T: Reflect {
-    fn type_name(&self) -> &str {
-        self.inner.type_name()
-    }
+cfg_if! {
+    if #[cfg(feature = "bevy_support")]
+    {
+        use std::any::Any;
+        use bevy_reflect::{Reflect, ReflectMut, ReflectOwned, ReflectRef, TypeInfo};
 
-    fn get_type_info(&self) -> &'static TypeInfo {
-        self.inner.get_type_info()
-    }
+        impl<T: Serde> Reflect for Property<T> where T: Reflect {
+            fn type_name(&self) -> &str {
+                self.inner.type_name()
+            }
 
-    fn into_any(self: Box<Self>) -> Box<dyn Any> {
-        Box::new(self.inner).into_any()
-    }
+            fn get_type_info(&self) -> &'static TypeInfo {
+                self.inner.get_type_info()
+            }
 
-    fn as_any(&self) -> &dyn Any {
-        self.inner.as_any()
-    }
+            fn into_any(self: Box<Self>) -> Box<dyn Any> {
+                Box::new(self.inner).into_any()
+            }
 
-    fn as_any_mut(&mut self) -> &mut dyn Any {
-        self.inner.as_any_mut()
-    }
+            fn as_any(&self) -> &dyn Any {
+                self.inner.as_any()
+            }
 
-    fn into_reflect(self: Box<Self>) -> Box<dyn Reflect> {
-        Box::new(self.inner).into_reflect()
-    }
+            fn as_any_mut(&mut self) -> &mut dyn Any {
+                self.inner.as_any_mut()
+            }
 
-    fn as_reflect(&self) -> &dyn Reflect {
-        self.inner.as_reflect()
-    }
+            fn into_reflect(self: Box<Self>) -> Box<dyn Reflect> {
+                Box::new(self.inner).into_reflect()
+            }
 
-    fn as_reflect_mut(&mut self) -> &mut dyn Reflect {
-        self.inner.as_reflect_mut()
-    }
+            fn as_reflect(&self) -> &dyn Reflect {
+                self.inner.as_reflect()
+            }
 
-    fn apply(&mut self, value: &dyn Reflect) {
-        self.inner.apply(value)
-    }
+            fn as_reflect_mut(&mut self) -> &mut dyn Reflect {
+                self.inner.as_reflect_mut()
+            }
 
-    fn set(&mut self, value: Box<dyn Reflect>) -> Result<(), Box<dyn Reflect>> {
-        self.inner.set(value)
-    }
+            fn apply(&mut self, value: &dyn Reflect) {
+                self.inner.apply(value)
+            }
 
-    fn reflect_ref(&self) -> ReflectRef {
-        self.inner.reflect_ref()
-    }
+            fn set(&mut self, value: Box<dyn Reflect>) -> Result<(), Box<dyn Reflect>> {
+                self.inner.set(value)
+            }
 
-    fn reflect_mut(&mut self) -> ReflectMut {
-        self.inner.reflect_mut()
-    }
+            fn reflect_ref(&self) -> ReflectRef {
+                self.inner.reflect_ref()
+            }
 
-    fn reflect_owned(self: Box<Self>) -> ReflectOwned {
-        Box::new(self.inner).reflect_owned()
-    }
+            fn reflect_mut(&mut self) -> ReflectMut {
+                self.inner.reflect_mut()
+            }
 
-    fn clone_value(&self) -> Box<dyn Reflect> {
-        self.inner.clone_value()
-    }
+            fn reflect_owned(self: Box<Self>) -> ReflectOwned {
+                Box::new(self.inner).reflect_owned()
+            }
+
+            fn clone_value(&self) -> Box<dyn Reflect> {
+                self.inner.clone_value()
+            }
 }
+
+    }
+
+}
+
 
 // should be shared
 impl<T: Serde> Property<T> {

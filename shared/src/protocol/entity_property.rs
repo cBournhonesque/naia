@@ -1,6 +1,5 @@
 use std::hash::Hash;
 
-use bevy_reflect::Reflect;
 use naia_serde::{BitReader, BitWrite, BitWriter, Serde, SerdeErr};
 
 use crate::{
@@ -11,7 +10,11 @@ use crate::{
     },
 };
 
-#[derive(Clone, Debug, Reflect, Default)]
+#[cfg(feature = "bevy_support")]
+use bevy_reflect::Reflect;
+
+#[derive(Clone, Debug, Default)]
+#[cfg_attr(feature = "bevy_support", derive(Reflect))]
 pub struct EntityProperty {
     handle_prop: Property<Option<EntityHandle>>,
 }

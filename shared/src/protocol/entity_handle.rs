@@ -1,9 +1,12 @@
 use crate::BigMapKey;
 use naia_serde::{BitReader, BitWrite, Serde, SerdeErr};
-use bevy_reflect::Reflect;
+
+#[cfg(feature = "bevy_support")]
+use bevy_reflect::{Reflect, FromReflect};
 
 // EntityHandle
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Reflect, Default, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Default, Debug)]
+#[cfg_attr(feature = "bevy_support", derive(Reflect), derive(FromReflect))]
 pub struct EntityHandle(u64);
 
 impl BigMapKey for EntityHandle {
