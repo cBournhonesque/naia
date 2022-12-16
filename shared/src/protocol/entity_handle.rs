@@ -1,5 +1,6 @@
 use crate::BigMapKey;
 use naia_serde::{BitReader, BitWrite, Serde, SerdeErr};
+use bevy_reflect::Reflect;
 
 // EntityHandle
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Reflect, Default, Debug)]

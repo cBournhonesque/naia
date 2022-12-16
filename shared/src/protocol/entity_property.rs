@@ -1,5 +1,6 @@
 use std::hash::Hash;
 
+use bevy_reflect::Reflect;
 use naia_serde::{BitReader, BitWrite, BitWriter, Serde, SerdeErr};
 
 use crate::{
