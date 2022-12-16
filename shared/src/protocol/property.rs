@@ -48,7 +48,7 @@ impl<T: Serde> Mul<f32> for Property<T>
 }
 
 impl<T: Serde> MulAssign<f32> for Property<T>
-    where T: MulAssign {
+    where T: MulAssign<f32> {
 
     fn mul_assign(&mut self, rhs: f32) {
         *res *= rhs
