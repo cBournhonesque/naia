@@ -22,7 +22,7 @@ where T: Add<Output = T> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let res = self.clone();
+        let mut res = self.clone();
         *res = self.inner + rhs.inner;
         res
     }
@@ -41,7 +41,7 @@ impl<T: Serde> Mul<f32> for Property<T>
     type Output = Self;
 
     fn mul(self, rhs: f32) -> Self::Output {
-        let res = self.clone();
+        let mut res = self.clone();
         *res = self.inner * rhs;
         res
     }
