@@ -18,7 +18,7 @@ pub struct Property<T: Serde> {
 
 
 impl<T: Serde> Add for Property<T>
-where T: Add {
+where T: Add<Output = T> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -32,12 +32,12 @@ impl<T: Serde> AddAssign for Property<T>
     where T: AddAssign {
 
     fn add_assign(&mut self, rhs: Self) {
-        *res += rhs.inner
+        *self += rhs.inner
     }
 }
 
 impl<T: Serde> Mul<f32> for Property<T>
-    where T: Mul<f32> {
+    where T: Mul<f32, Output = T> {
     type Output = Self;
 
     fn mul(self, rhs: f32) -> Self::Output {
@@ -51,7 +51,7 @@ impl<T: Serde> MulAssign<f32> for Property<T>
     where T: MulAssign<f32> {
 
     fn mul_assign(&mut self, rhs: f32) {
-        *res *= rhs
+        *self *= rhs
     }
 }
 
