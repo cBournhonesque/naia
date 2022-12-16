@@ -32,7 +32,7 @@ impl<T: Serde> AddAssign for Property<T>
     where T: AddAssign {
 
     fn add_assign(&mut self, rhs: Self) {
-        *self += rhs.inner
+        self.deref_mut() += rhs.inner;
     }
 }
 
@@ -51,7 +51,7 @@ impl<T: Serde> MulAssign<f32> for Property<T>
     where T: MulAssign<f32> {
 
     fn mul_assign(&mut self, rhs: f32) {
-        *self *= rhs
+        self.deref_mut() *= rhs;
     }
 }
 
