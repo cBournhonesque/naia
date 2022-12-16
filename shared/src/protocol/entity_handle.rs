@@ -2,7 +2,7 @@ use crate::BigMapKey;
 use naia_serde::{BitReader, BitWrite, Serde, SerdeErr};
 
 // EntityHandle
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Reflect, Default, Debug)]
 pub struct EntityHandle(u64);
 
 impl BigMapKey for EntityHandle {

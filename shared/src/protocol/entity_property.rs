@@ -10,7 +10,7 @@ use crate::{
     },
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Reflect, Default)]
 pub struct EntityProperty {
     handle_prop: Property<Option<EntityHandle>>,
 }
