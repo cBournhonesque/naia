@@ -23,6 +23,15 @@ where T: Display {
     }
 }
 
+/// Implement default for Property<T>
+/// Note that this is invalid and shouldn't be used because the mutator_index is arbitrarily set to 0
+impl<T: Serde> Default for Property<T>
+where T: Default {
+    fn default() -> Self {
+        Self::new(T::default(), 0)
+    }
+}
+
 impl<T: Serde> Reflect for Property<T>
 where T: Reflect {
     fn type_name(&self) -> &str {
