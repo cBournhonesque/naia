@@ -5,7 +5,7 @@ use naia_shared::{BigMapKey, ChannelIndex, Protocolize};
 use crate::{RoomKey, Server};
 
 // UserKey
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct UserKey(u64);
 
 impl BigMapKey for UserKey {
