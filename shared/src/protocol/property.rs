@@ -34,7 +34,7 @@ where T: Reflect {
     }
 
     fn into_any(self: Box<Self>) -> Box<dyn Any> {
-        self.inner.into_any()
+        Box::new(self.inner).into_any()
     }
 
     fn as_any(&self) -> &dyn Any {
@@ -46,7 +46,7 @@ where T: Reflect {
     }
 
     fn into_reflect(self: Box<Self>) -> Box<dyn Reflect> {
-        self.inner.into_reflect()
+        Box::new(self.inner).into_reflect()
     }
 
     fn as_reflect(&self) -> &dyn Reflect {
@@ -74,7 +74,7 @@ where T: Reflect {
     }
 
     fn reflect_owned(self: Box<Self>) -> ReflectOwned {
-        self.inner.reflect_owned()
+        Box::new(self.inner).reflect_owned()
     }
 
     fn clone_value(&self) -> Box<dyn Reflect> {
