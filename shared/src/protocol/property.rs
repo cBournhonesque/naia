@@ -26,7 +26,7 @@ impl<T: Serde> Serialize for Property<T> where T: Serialize {
 /// Deserialize the property according to the underlying field's deserializer
 /// Again, same issues as with Default, we had to use 0 as mutator index
 impl<'de, T: Serde> Deserialize<'de> for Property<T> where T: Deserialize {
-    fn deserialize<D>(deserializer: D) -> Result<Self, S::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
         let inner = T::deserialize(deserializer)?;
         Ok(Self::new(inner, 0))
     }

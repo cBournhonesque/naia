@@ -23,7 +23,7 @@ pub use naia_socket_shared::{Instant, LinkConditionerConfig, Random, SocketConfi
 
 pub use naia_derive::*;
 pub use naia_serde as serde;
-pub use serde::derive_serde;
+pub use crate::serde::derive_serde;
 
 mod backends;
 mod connection;
