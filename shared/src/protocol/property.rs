@@ -2,6 +2,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Deref, DerefMut, Add, AddAssign, Mul, MulAssign};
 
 
+use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use naia_serde::{BitReader, BitWrite, BitWriter, Serde, SerdeErr};
 
 use crate::protocol::property_mutate::PropertyMutator;
@@ -14,6 +15,23 @@ pub struct Property<T: Serde> {
     mutator: Option<PropertyMutator>,
     mutator_index: u8,
 }
+
+impl<T: Serde> Serialize for Property<T> where T: Serialize {
+    fn serialize<S>(&self, serializer: S) -> Result<serde::ser::Ok, serde::ser::Error> where S: Serializer {
+        self.inner.serialize(serializer)
+    }
+}
+
+
+/// Deserialize the property according to the underlying field's deserializer
+/// Again, same issues as with Default, we had to use 0 as mutator index
+impl<'de, T: Serde> Deserialize<'de> for Property<T> where T: Deserialize {
+    fn deserialize<D>(deserializer: D) -> Result<Self, serde::de::Error> where D: Deserializer<'de> {
+        let inner = T::deserialize(deserializer)?;
+        Ok(Self::new(inner, 0))
+    }
+}
+
 
 
 impl<T: Serde> Add for Property<T>
@@ -71,6 +89,8 @@ where T: Display {
 /// Implement default for Property<T>
 /// Note that this is invalid and shouldn't be used because the mutator_index is arbitrarily set to 0
 /// It's mostly useful for bevy_inspector_egui
+/// TODO: instead, impl Default on the replicate struct, and use new(default(), default(), etc.) or new_complete
+///  so we dont need to implement default here
 impl<T: Serde> Default for Property<T>
 where T: Default {
     fn default() -> Self {
