@@ -1,9 +1,6 @@
 use proc_macro2::{Punct, Spacing, Span, TokenStream};
 use quote::{format_ident, quote};
-use syn::{
-    parse_macro_input, Data, DeriveInput, Fields, GenericArgument, Ident, Index, Lit, Member, Meta,
-    Path, PathArguments, Result, Type,
-};
+use syn::{parse_macro_input, Data, DeriveInput, Fields, GenericArgument, Ident, Index, Lit, Member, Meta, Path, PathArguments, Result, Type, PathSegment, parse_str};
 
 const UNNAMED_FIELD_PREFIX: &'static str = "unnamed_field_";
 
@@ -75,6 +72,7 @@ pub fn replicate_impl(input: proc_macro::TokenStream) -> proc_macro::TokenStream
         use naia_shared::{
             DiffMask, PropertyMutate, ReplicateSafe, PropertyMutator, ComponentUpdate,
             Protocolize, ReplicaDynRef, ReplicaDynMut, NetEntityHandleConverter,
+            ReplicableProperty, ReplicableEntityProperty,
             serde::{BitReader, BitWrite, BitWriter, OwnedBitReader, Serde, SerdeErr},
         };
         use #protocol_path::{#protocol_name, #protocol_kind_name};
@@ -119,11 +117,15 @@ pub struct NormalProperty {
     pub variable_name: Ident,
     pub inner_type: Type,
     pub uppercase_variable_name: Ident,
+    /// type implementing ReplicableProperty
+    pub replicable_property_type: Type,
 }
 
 pub struct EntityProperty {
     pub variable_name: Ident,
     pub uppercase_variable_name: Ident,
+    /// type implementing ReplicableEntityProperty
+    pub replicable_entity_property_type: Type,
 }
 
 #[allow(clippy::large_enum_variant)]
@@ -151,7 +153,7 @@ fn get_field_name(property: &Property, index: usize, is_replica_tuple_struct: bo
 }
 
 impl Property {
-    pub fn normal(variable_name: Ident, inner_type: Type) -> Self {
+    pub fn normal(variable_name: Ident, inner_type: Type, replicable_property_type: Type) -> Self {
         Self::Normal(NormalProperty {
             variable_name: variable_name.clone(),
             inner_type,
@@ -159,16 +161,18 @@ impl Property {
                 variable_name.to_string().to_uppercase().as_str(),
                 Span::call_site(),
             ),
+            replicable_property_type: replicable_property_type,
         })
     }
 
-    pub fn entity(variable_name: Ident) -> Self {
+    pub fn entity(variable_name: Ident, replicable_entity_property_type: Type) -> Self {
         Self::Entity(EntityProperty {
             variable_name: variable_name.clone(),
             uppercase_variable_name: Ident::new(
                 variable_name.to_string().to_uppercase().as_str(),
                 Span::call_site(),
             ),
+            replicable_entity_property_type: replicable_entity_property_type,
         })
     }
 
@@ -187,8 +191,41 @@ impl Property {
     }
 }
 
+
+/// Add the replicable properties
+/// (either Property<T>, EntityProperty, or a Container<EntityProperty>)
 fn properties(input: &DeriveInput) -> Vec<Property> {
     let mut fields = Vec::new();
+
+    let mut add_fields = |property_seg: &PathSegment, variable_name: &Ident| {
+        let property_type = &property_seg.ident;
+        // EntityProperty
+        if property_type == "EntityProperty" {
+            fields.push(Property::entity(
+                variable_name.clone(),
+                parse_str::<Type>("EntityProperty").unwrap()
+            ));
+        }
+        // VecDequeEntityProperty
+        else if property_type == "VecDequeEntityProperty" {
+            fields.push(Property::entity(
+                variable_name.clone(),
+                parse_str::<Type>("VecDequeEntityProperty").unwrap()
+            ));
+        }
+        // Property
+        else if property_type == "Property" {
+            if let PathArguments::AngleBracketed(angle_args) = &property_seg.arguments {
+                if let Some(GenericArgument::Type(inner_type)) = angle_args.args.first() {
+                    fields.push(Property::normal(
+                        variable_name.clone(),
+                        inner_type.clone(),
+                        parse_str::<Type>("Property").unwrap()
+                    ));
+                }
+            }
+        }
+    };
 
     if let Data::Struct(data_struct) = &input.data {
         match &data_struct.fields {
@@ -197,23 +234,7 @@ fn properties(input: &DeriveInput) -> Vec<Property> {
                     if let Some(variable_name) = &field.ident {
                         if let Type::Path(type_path) = &field.ty {
                             if let Some(property_seg) = type_path.path.segments.first() {
-                                let property_type = property_seg.ident.clone();
-                                if property_type == "EntityProperty" {
-                                    fields.push(Property::entity(variable_name.clone()));
-                                    continue;
-                                } else if let PathArguments::AngleBracketed(angle_args) =
-                                    &property_seg.arguments
-                                {
-                                    if let Some(GenericArgument::Type(inner_type)) =
-                                        angle_args.args.first()
-                                    {
-                                        fields.push(Property::normal(
-                                            variable_name.clone(),
-                                            inner_type.clone(),
-                                        ));
-                                        continue;
-                                    }
-                                }
+                                add_fields(property_seg, variable_name);
                             }
                         }
                     }
@@ -224,22 +245,8 @@ fn properties(input: &DeriveInput) -> Vec<Property> {
                     if let Type::Path(type_path) = &field.ty {
                         if let Some(property_seg) = type_path.path.segments.first() {
                             let property_type = property_seg.ident.clone();
-                            let variable_name =
-                                get_variable_name_for_unnamed_field(index, property_type.span());
-                            if property_type == "EntityProperty" {
-                                fields.push(Property::entity(variable_name));
-                                continue;
-                            } else if let PathArguments::AngleBracketed(angle_args) =
-                                &property_seg.arguments
-                            {
-                                if let Some(GenericArgument::Type(inner_type)) =
-                                    angle_args.args.first()
-                                {
-                                    fields
-                                        .push(Property::normal(variable_name, inner_type.clone()));
-                                    continue;
-                                }
-                            }
+                            let variable_name = get_variable_name_for_unnamed_field(index, property_type.span());
+                            add_fields(property_seg, &variable_name);
                         }
                     }
                 }
@@ -493,27 +500,29 @@ pub fn new_complete_method(
             Property::Normal(property) => {
                 let field_name = &property.variable_name;
                 let field_type = &property.inner_type;
+                let replicable_property_type = &property.replicable_property_type;
                 let uppercase_variant_name = &property.uppercase_variable_name;
                 if is_replica_tuple_struct {
                     quote! {
-                        Property::<#field_type>::new(#field_name, #enum_name::#uppercase_variant_name as u8)
+                        <#replicable_property_type<#field_type>>::new(#field_name, #enum_name::#uppercase_variant_name as u8)
                     }
                 } else {
                     quote! {
-                        #field_name: Property::<#field_type>::new(#field_name, #enum_name::#uppercase_variant_name as u8)
+                        #field_name: <#replicable_property_type<#field_type>>::new(#field_name, #enum_name::#uppercase_variant_name as u8)
                     }
                 }
             }
             Property::Entity(property) => {
                 let field_name = &property.variable_name;
+                let replicable_entity_property_type = &property.replicable_entity_property_type;
                 let uppercase_variant_name = &property.uppercase_variable_name;
                 if is_replica_tuple_struct {
                     quote! {
-                        EntityProperty::new(#enum_name::#uppercase_variant_name as u8)
+                        <#replicable_entity_property_type>::new(#enum_name::#uppercase_variant_name as u8)
                     }
                 } else {
                     quote! {
-                        #field_name: EntityProperty::new(#enum_name::#uppercase_variant_name as u8)
+                        #field_name: <#replicable_entity_property_type>::new(#enum_name::#uppercase_variant_name as u8)
                     }
                 }
             }
@@ -572,16 +581,18 @@ pub fn read_method(
         let field_name = property.variable_name();
         let new_output_right = match property {
             Property::Normal(property) => {
+                let replicable_property_type = &property.replicable_property_type;
                 let field_type = &property.inner_type;
                 let uppercase_variant_name = &property.uppercase_variable_name;
                 quote! {
-                    let #field_name = Property::<#field_type>::new_read(reader, #enum_name::#uppercase_variant_name as u8)?;
+                    let #field_name = <#replicable_property_type<#field_type>>::new_read(reader, #enum_name::#uppercase_variant_name as u8)?;
                 }
             }
             Property::Entity(property) => {
+                let replicable_entity_property_type = &property.replicable_entity_property_type;
                 let uppercase_variant_name = &property.uppercase_variable_name;
                 quote! {
-                    let #field_name = EntityProperty::new_read(reader, #enum_name::#uppercase_variant_name as u8, converter)?;
+                    let #field_name = <#replicable_entity_property_type>::new_read(reader, #enum_name::#uppercase_variant_name as u8, converter)?;
                 }
             }
         };
@@ -625,24 +636,26 @@ pub fn read_create_update_method(
     for property in properties.iter() {
         let new_output_right = match property {
             Property::Normal(property) => {
+                let replicable_property_type = &property.replicable_property_type;
                 let field_type = &property.inner_type;
                 quote! {
                     {
                         let should_read = bool::de(reader)?;
                         should_read.ser(&mut update_writer);
                         if should_read {
-                            Property::<#field_type>::read_write(reader, &mut update_writer)?;
+                            <#replicable_property_type<#field_type>>::read_write(reader, &mut update_writer)?;
                         }
                     }
                 }
             }
-            Property::Entity(_) => {
+            Property::Entity(property) => {
+                let replicable_entity_property_type = &property.replicable_entity_property_type;
                 quote! {
                     {
                         let should_read = bool::de(reader)?;
                         should_read.ser(&mut update_writer);
                         if should_read {
-                            EntityProperty::read_write(reader, &mut update_writer)?;
+                            <#replicable_entity_property_type>::read_write(reader, &mut update_writer)?;
                         }
                     }
                 }
@@ -681,17 +694,19 @@ fn read_apply_update_method(
     for (index, property) in properties.iter().enumerate() {
         let field_name = get_field_name(property, index, is_replica_tuple_struct);
         let new_output_right = match property {
-            Property::Normal(_) => {
+            Property::Normal(property) => {
+                let replicable_property_type = &property.replicable_property_type;
                 quote! {
                     if bool::de(reader)? {
-                        Property::read(&mut self.#field_name, reader)?;
+                        #replicable_property_type::read(&mut self.#field_name, reader)?;
                     }
                 }
             }
-            Property::Entity(_) => {
+            Property::Entity(property) => {
+                let replicable_entity_property_type = &property.replicable_entity_property_type;
                 quote! {
                     if bool::de(reader)? {
-                        EntityProperty::read(&mut self.#field_name, reader, converter)?;
+                        <#replicable_entity_property_type>::read(&mut self.#field_name, reader, converter)?;
                     }
                 }
             }
@@ -719,14 +734,16 @@ fn write_method(properties: &[Property], is_replica_tuple_struct: bool) -> Token
     for (index, property) in properties.iter().enumerate() {
         let field_name = get_field_name(property, index, is_replica_tuple_struct);
         let new_output_right = match property {
-            Property::Normal(_) => {
+            Property::Normal(property) => {
+                let replicable_property_type = &property.replicable_property_type;
                 quote! {
-                    Property::write(&self.#field_name, bit_writer);
+                    #replicable_property_type::write(&self.#field_name, bit_writer);
                 }
             }
-            Property::Entity(_) => {
+            Property::Entity(property) => {
+                let replicable_entity_property_type = &property.replicable_entity_property_type;
                 quote! {
-                    EntityProperty::write(&self.#field_name, bit_writer, converter);
+                    <#replicable_entity_property_type>::write(&self.#field_name, bit_writer, converter);
                 }
             }
         };
@@ -757,22 +774,24 @@ fn write_update_method(
         let field_name = get_field_name(property, index, is_replica_tuple_struct);
         let new_output_right = match property {
             Property::Normal(property) => {
+                let replicable_property_type = &property.replicable_property_type;
                 let uppercase_variant_name = &property.uppercase_variable_name;
                 quote! {
                     if let Some(true) = diff_mask.bit(#enum_name::#uppercase_variant_name as u8) {
                         true.ser(writer);
-                        Property::write(&self.#field_name, writer);
+                        #replicable_property_type::write(&self.#field_name, writer);
                     } else {
                         false.ser(writer);
                     }
                 }
             }
             Property::Entity(property) => {
+                let replicable_entity_property_type = &property.replicable_entity_property_type;
                 let uppercase_variant_name = &property.uppercase_variable_name;
                 quote! {
                     if let Some(true) = diff_mask.bit(#enum_name::#uppercase_variant_name as u8) {
                         true.ser(writer);
-                        EntityProperty::write(&self.#field_name, writer, converter);
+                        <#replicable_entity_property_type>::write(&self.#field_name, writer, converter);
                     } else {
                         false.ser(writer);
                     }
@@ -819,9 +838,7 @@ fn entities_method(properties: &[Property]) -> TokenStream {
         if let Property::Entity(entity_prop) = property {
             let field_name = &entity_prop.variable_name;
             let body_add_right = quote! {
-                if let Some(handle) = self.#field_name.handle() {
-                    output.push(handle);
-                }
+                output.extend(self.#field_name.entities());
             };
             let new_body = quote! {
                 #body
