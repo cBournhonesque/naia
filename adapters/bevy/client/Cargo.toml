@@ -13,6 +13,7 @@ edition = "2021"
 maintenance = { status = "actively-developed" }
 
 [features]
+debug = ["naia-client/debug"]
 
 [dependencies]
 naia-client = { version = "0.14", path = "../../../client", features = ["bevy_support", "wbindgen"] }

@@ -64,7 +64,7 @@ pub struct Server<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelI
     user_connections: HashMap<SocketAddr, Connection<P, E, C>>,
     // Rooms
     rooms: BigMap<RoomKey, Room<E>>,
-    // Entities
+    // Entitietack_substitute_newer_paste
     world_record: WorldRecord<E, P::Kind>,
     entity_scope_map: EntityScopeMap<E>,
     // Components

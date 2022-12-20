@@ -12,6 +12,9 @@ edition = "2021"
 [badges]
 maintenance = { status = "actively-developed" }
 
+[features]
+debug = ["naia-server/debug"]
+
 [dependencies]
 naia-server = { version = "0.14", path = "../../../server", features = ["bevy_support"] }
 naia-bevy-shared = { version = "0.14", path = "../shared" }

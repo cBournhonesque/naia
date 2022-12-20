@@ -168,6 +168,8 @@ impl VecDequeEntityProperty {
         let new_handle = handler.entity_to_handle(entity);
         self.0.push_back(new_handle);
     }
+
+    // TODO: add back() pop_back() pop_front() front() ?
 }
 
 

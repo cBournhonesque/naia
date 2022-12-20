@@ -9,6 +9,7 @@ use crate::{
     UnorderedReliableReceiver,
 };
 
+// TODO: maybe make this ordered?
 pub struct EntityActionReceiver<E: Copy + Hash + Eq, K: ProtocolKindType> {
     receiver: UnorderedReliableReceiver<EntityAction<E, K>>,
     entity_channels: HashMap<E, EntityChannel<E, K>>,

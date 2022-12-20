@@ -343,6 +343,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> EntityM
             EntityActionEvent::SpawnEntity(entity) => {
                 EntityActionType::SpawnEntity.ser(bit_writer);
 
+
                 // write net entity
                 self.world_channel
                     .entity_to_net_entity(entity)
@@ -354,6 +355,13 @@ impl<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> EntityM
                     Some(kind_list) => kind_list,
                     None => Vec::new(),
                 };
+
+                #[cfg(feature="debug")]
+                {
+                    let e_u16: u16 = (*self.world_channel
+                        .entity_to_net_entity(entity).unwrap()).into();
+                    log::info!("write on server SpawnEntity for net entity({})", e_u16);
+                }
 
                 // write number of components
                 let components_num =
@@ -372,8 +380,6 @@ impl<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> EntityM
 
                 // if we are writing to this packet, add it to record
                 if is_writing {
-                    //info!("write SpawnEntity({})", action_id);
-
                     Self::record_action_written(
                         &mut self.sent_action_packets,
                         packet_index,

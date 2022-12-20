@@ -95,6 +95,11 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
             EntityActionType::SpawnEntity => {
                 // read entity
                 let net_entity = NetEntity::de(reader)?;
+                #[cfg(feature="debug")]
+                {
+                    let e_u16: u16 = net_entity.into();
+                    log::info!("read spawn net_entity on client: {}", e_u16);
+                }
 
                 // read components
                 let components_num = UnsignedVariableInteger::<3>::de(reader)?.get();
@@ -105,6 +110,12 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
                     self.received_components
                         .insert((net_entity, new_component_kind), new_component);
                     component_kinds.push(new_component_kind);
+                }
+
+                #[cfg(feature="debug")]
+                {
+                    let e_u16: u16 = net_entity.into();
+                    log::info!("finished reading all components associated with net_entity: {}", e_u16);
                 }
 
                 self.receiver.buffer_action(
@@ -163,8 +174,11 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
         for action in incoming_actions {
             match action {
                 EntityAction::SpawnEntity(net_entity, components) => {
-                    //let e_u16: u16 = net_entity.into();
-                    //info!("spawn entity: {}", e_u16);
+                    #[cfg(feature="debug")]
+                    {
+                        let e_u16: u16 = net_entity.into();
+                        log::info!("spawn net_entity on client: {}", e_u16);
+                    }
 
                     if self.local_to_world_entity.contains_key(&net_entity) {
                         panic!("attempted to insert duplicate entity");
@@ -224,9 +238,11 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
                     }
                 }
                 EntityAction::InsertComponent(net_entity, component_kind) => {
-                    //let e_u16: u16 = net_entity.into();
-                    //info!("insert component for: {}", e_u16);
-
+                    #[cfg(feature="debug")]
+                    {
+                        let e_u16: u16 = net_entity.into();
+                        log::info!("insert component for net_entity: {}", e_u16);
+                    }
                     let component = self
                         .received_components
                         .remove(&(net_entity, component_kind))
