@@ -25,6 +25,7 @@ pub struct EntityProperty {
     // We should also update the new_complete function to directly support entity initialization as well
     // We don't really allow partial replicate messages anyway!
     handle_prop: Property<Option<EntityHandle>>,
+
 }
 
 impl EntityProperty {

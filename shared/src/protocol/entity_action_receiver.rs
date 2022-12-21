@@ -25,10 +25,12 @@ impl<E: Copy + Hash + Eq, K: ProtocolKindType> Default for EntityActionReceiver<
 }
 
 impl<E: Copy + Hash + Eq, K: ProtocolKindType> EntityActionReceiver<E, K> {
+    /// Add a received EntityAction to the internal buffer
     pub fn buffer_action(&mut self, action_id: ActionId, action: EntityAction<E, K>) {
         self.receiver.buffer_message(action_id, action)
     }
 
+    /// Read through the internal buffer and return all received EntityActions
     pub fn receive_actions(&mut self) -> Vec<EntityAction<E, K>> {
         let mut outgoing_actions = Vec::new();
         let incoming_actions = self.receiver.receive_messages();
