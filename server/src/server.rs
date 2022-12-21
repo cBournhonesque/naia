@@ -254,7 +254,15 @@ impl<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> Server<
                     let all_entities_in_scope = {
                         entities
                             .iter()
-                            .all(|entity| connection.entity_manager.entity_channel_is_open(entity))
+                            .all(|entity| {
+                                let is_entity_in_scope = connection.entity_manager.entity_channel_is_open(entity);
+                                #[cfg(feature="debug")]
+                                {
+                                    log::info!("is entity from message {:?} in scope: {}", message.kind().to_type_id(), is_entity_in_scope);
+                                }
+
+                                is_entity_in_scope
+                            })
                     };
                     if all_entities_in_scope {
                         // All necessary entities are in scope, so send message

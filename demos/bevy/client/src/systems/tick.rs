@@ -15,8 +15,7 @@ pub fn tick(
     mut client: Client<Protocol, Channels>,
     mut position_query: Query<&mut Position>,
 ) {
-    //All game logic should happen here, on a tick event
-
+    // All game logic should happen here, on a tick event
     if let Some(command) = global.queued_command.take() {
         if let Some(predicted_entity) = global
             .owned_entity
