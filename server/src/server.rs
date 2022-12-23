@@ -613,12 +613,12 @@ impl<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> Server<
 
         let component_kind = component_ref.kind();
 
-        // if world.has_component_of_kind(entity, &component_kind) {
-        //     panic!(
-        //         "attempted to add component to entity which already has one of that type! \
-        //            an entity is not allowed to have more than 1 type of component at a time."
-        //     )
-        // }
+        if world.has_component_of_kind(entity, &component_kind) {
+            panic!(
+                "attempted to add component to entity which already has one of that type! \
+                   an entity is not allowed to have more than 1 type of component at a time."
+            )
+        }
 
         self.component_init(entity, &mut component_ref);
 
