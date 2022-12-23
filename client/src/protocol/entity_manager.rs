@@ -151,6 +151,13 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
                 let net_entity = NetEntity::de(reader)?;
                 let component_kind = P::Kind::de(reader)?;
 
+                #[cfg(feature="debug")]
+                {
+                    use naia_shared::ProtocolKindType;
+                    let e_u16: u16 = net_entity.into();
+                    log::info!("read remove component {:?} net_entity on client: {}", component_kind.to_type_id(), e_u16);
+                }
+
                 self.receiver.buffer_action(
                     action_id,
                     EntityAction::RemoveComponent(net_entity, component_kind),

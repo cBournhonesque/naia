@@ -450,6 +450,13 @@ impl<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> WorldCh
                         let send_component_set = output.get_mut(entity).unwrap();
                         send_component_set.insert(*component);
                     }
+                    if let ComponentChannel::Removing = component_channel {
+                        #[cfg(feature="debug")]
+                        {
+                            let e_u16: u16 = (*self.entity_to_net_entity(entity).unwrap()).into();
+                            log::info!("have removing component channel for entity {:?}", e_u16);
+                        }
+                    }
                 }
             }
         }
