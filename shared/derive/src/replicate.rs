@@ -128,10 +128,17 @@ pub struct EntityProperty {
     pub replicable_entity_property_type: Type,
 }
 
+pub struct NonReplicatedProperty {
+    pub variable_name: Ident,
+    pub field_type: Type,
+}
+
 #[allow(clippy::large_enum_variant)]
 pub enum Property {
     Normal(NormalProperty),
     Entity(EntityProperty),
+    /// We can have some fields that are non replicated. They must implement Default.
+    NonReplicated(NonReplicatedProperty),
 }
 
 pub enum StructType {
@@ -184,10 +191,25 @@ impl Property {
         })
     }
 
+    pub fn nonreplicated(variable_name: Ident, field_type: Type) -> Self {
+        Self::NonReplicated(NonReplicatedProperty {
+            variable_name: variable_name.clone(),
+            field_type,
+        })
+    }
+
+    pub fn is_replicated(&self) -> bool {
+        match self {
+            Self::Normal(_) | Self::Entity(_) => true,
+            Self::NonReplicated(_) => false
+        }
+    }
+
     pub fn variable_name(&self) -> &Ident {
         match self {
             Self::Normal(property) => &property.variable_name,
             Self::Entity(property) => &property.variable_name,
+            Self::NonReplicated(property) => &property.variable_name,
         }
     }
 
@@ -195,6 +217,7 @@ impl Property {
         match self {
             Self::Normal(property) => &property.uppercase_variable_name,
             Self::Entity(property) => &property.uppercase_variable_name,
+            Self::NonReplicated(_) => panic!("Unused for non-replicated properties")
         }
     }
 }
@@ -205,7 +228,7 @@ impl Property {
 fn properties(input: &DeriveInput) -> Vec<Property> {
     let mut fields = Vec::new();
 
-    let mut add_fields = |property_seg: &PathSegment, variable_name: &Ident| {
+    let mut add_fields = |property_seg: &PathSegment, variable_name: &Ident, field_type: &Type| {
         let property_type = &property_seg.ident;
         // EntityProperty
         if property_type == "EntityProperty" {
@@ -232,6 +255,8 @@ fn properties(input: &DeriveInput) -> Vec<Property> {
                     ));
                 }
             }
+        } else {
+            fields.push(Property::nonreplicated(variable_name.clone(), field_type.clone()));
         }
     };
 
@@ -242,7 +267,7 @@ fn properties(input: &DeriveInput) -> Vec<Property> {
                     if let Some(variable_name) = &field.ident {
                         if let Type::Path(type_path) = &field.ty {
                             if let Some(property_seg) = type_path.path.segments.first() {
-                                add_fields(property_seg, variable_name);
+                                add_fields(property_seg, variable_name, &field.ty);
                             }
                         }
                     }
@@ -254,7 +279,7 @@ fn properties(input: &DeriveInput) -> Vec<Property> {
                         if let Some(property_seg) = type_path.path.segments.first() {
                             let property_type = property_seg.ident.clone();
                             let variable_name = get_variable_name_for_unnamed_field(index, property_type.span());
-                            add_fields(property_seg, &variable_name);
+                            add_fields(property_seg, &variable_name, &field.ty);
                         }
                     }
                 }
@@ -324,7 +349,7 @@ fn property_enum(enum_name: &Ident, properties: &[Property]) -> TokenStream {
 
     let mut variant_list = quote! {};
 
-    for (index, property) in properties.iter().enumerate() {
+    for (index, property) in properties.iter().filter(|p| p.is_replicated()).enumerate() {
         let index = syn::Index::from(index);
         let uppercase_variant_name = property.uppercase_variable_name();
 
@@ -409,6 +434,7 @@ fn clone_method(
                 };
                 entity_property_output = new_output_result;
             }
+            _ => {}
         };
     }
 
@@ -429,7 +455,7 @@ fn mirror_method(
 ) -> TokenStream {
     let mut output = quote! {};
 
-    for (index, property) in properties.iter().enumerate() {
+    for (index, property) in properties.iter().filter(|p| p.is_replicated()).enumerate() {
         let field_name = get_field_name(property, index, struct_type);
         let new_output_right = quote! {
             self.#field_name.mirror(&replica.#field_name);
@@ -453,7 +479,7 @@ fn mirror_method(
 fn set_mutator_method(properties: &[Property], struct_type: &StructType) -> TokenStream {
     let mut output = quote! {};
 
-    for (index, property) in properties.iter().enumerate() {
+    for (index, property) in properties.iter().filter(|p| p.is_replicated()).enumerate() {
         let field_name = get_field_name(property, index, struct_type);
         let new_output_right = quote! {
                 self.#field_name.set_mutator(mutator);
@@ -494,7 +520,7 @@ pub fn new_complete_method(
                 };
                 args = new_output_result;
             }
-            Property::Entity(_) => {
+            Property::Entity(_) | Property::NonReplicated(_) => {
                 continue;
             }
         };
@@ -535,6 +561,23 @@ pub fn new_complete_method(
                     StructType::TupleStruct => {
                         quote! {
                             <#replicable_entity_property_type>::new(#enum_name::#uppercase_variant_name as u8)
+                        }
+                    }
+                    _ => {quote!{}}
+                }
+            }
+            Property::NonReplicated(property) => {
+                let field_name = &property.variable_name;
+                let field_type = &property.field_type;
+                match *struct_type {
+                    StructType::Struct =>  {
+                        quote! {
+                             #field_name: <#field_type>::default()
+                        }
+                    }
+                    StructType::TupleStruct => {
+                        quote! {
+                            <#field_type>::default()
                         }
                     }
                     _ => {quote!{}}
@@ -617,6 +660,13 @@ pub fn read_method(
                     let #field_name = <#replicable_entity_property_type>::new_read(reader, #enum_name::#uppercase_variant_name as u8, converter)?;
                 }
             }
+            Property::NonReplicated(property) => {
+                let field_name = &property.variable_name;
+                let field_type = &property.field_type;
+                quote! {
+                    let #field_name = <#field_type>::default();
+                }
+            }
         };
 
         let new_output_result = quote! {
@@ -690,6 +740,7 @@ pub fn read_create_update_method(
                     }
                 }
             }
+            Property::NonReplicated(_) => {continue;}
         };
 
         let new_output_result = quote! {
@@ -740,6 +791,7 @@ fn read_apply_update_method(
                     }
                 }
             }
+            Property::NonReplicated(_) => {continue;}
         };
 
         let new_output_result = quote! {
@@ -776,6 +828,7 @@ fn write_method(properties: &[Property], struct_type: &StructType) -> TokenStrea
                     <#replicable_entity_property_type>::write(&self.#field_name, bit_writer, converter);
                 }
             }
+            Property::NonReplicated(_) => {continue;}
         };
 
         let new_output_result = quote! {
@@ -827,6 +880,7 @@ fn write_update_method(
                     }
                 }
             }
+            Property::NonReplicated(_) => {continue;}
         };
 
         let new_output_result = quote! {
