@@ -1,5 +1,8 @@
 use crate::parse::Struct;
 
+// TODO: for types that implement Serialize/Deserialize (get via attribute)
+//  derive Serde here ourselves with bincode (or another library defined via attribute)
+
 #[allow(clippy::format_push_string)]
 pub fn derive_serde_struct(struct_: &Struct) -> String {
     let mut ser_body = String::new();

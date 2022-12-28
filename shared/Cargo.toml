@@ -21,6 +21,7 @@ wbindgen = [ "naia-socket-shared/wbindgen", "js-sys" ]
 mquad = [ "naia-socket-shared/mquad" ]
 bevy_support = [ "bevy_ecs", "bevy_reflect" ]
 zstd_support = [ "zstd" ]
+bincode = ["naia-serde/bincode"]
 
 [dependencies]
 naia-socket-shared = { version = "0.10", path = "../socket/shared" }

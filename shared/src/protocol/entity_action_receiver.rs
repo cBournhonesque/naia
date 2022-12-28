@@ -251,6 +251,8 @@ impl<E: Copy + Hash + Eq, K: ProtocolKindType> EntityChannel<E, K> {
             component_state.inserted = false;
             outgoing_actions.push(EntityAction::RemoveComponent(self.entity, component));
 
+            log::debug!("Remove component for entity");
+
             // pop ALL waiting inserts, and removes OLDER than remove_id (in reference to
             // component)
             component_state.receive_canonical(id);

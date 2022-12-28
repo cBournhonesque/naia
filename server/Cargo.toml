@@ -20,6 +20,7 @@ maintenance = { status = "actively-developed" }
 bevy_support = ["naia-shared/bevy_support","bevy_ecs"]
 zstd_support = ["naia-shared/zstd_support"]
 debug = []
+bincode = ["naia-shared/bincode"]
 
 [dependencies]
 naia-server-socket = { version = "0.13", path = "../socket/server" }
