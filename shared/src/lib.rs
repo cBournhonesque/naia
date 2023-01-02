@@ -74,7 +74,7 @@ pub use protocol::{
     entity_handle::EntityHandle,
     entity_property::{
         EntityConverter, EntityHandleConverter, EntityProperty, FakeEntityConverter,
-        NetEntityConverter, NetEntityHandleConverter, VecDequeEntityProperty,
+        NetEntityConverter, NetEntityHandleConverter, VecDequeEntityProperty, ExternalEntity,
     },
     net_entity::NetEntity,
     property::Property,

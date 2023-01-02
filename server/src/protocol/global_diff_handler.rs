@@ -1,14 +1,14 @@
 use std::{collections::HashMap, hash::Hash, net::SocketAddr};
 
-use naia_shared::ProtocolKindType;
+use naia_shared::{ExternalEntity, ProtocolKindType};
 
 use super::mut_channel::{MutChannel, MutReceiver, MutReceiverBuilder, MutSender};
 
-pub struct GlobalDiffHandler<E: Copy + Eq + Hash, K: ProtocolKindType> {
+pub struct GlobalDiffHandler<E: ExternalEntity, K: ProtocolKindType> {
     mut_receiver_builders: HashMap<(E, K), MutReceiverBuilder>,
 }
 
-impl<E: Copy + Eq + Hash, K: ProtocolKindType> Default for GlobalDiffHandler<E, K> {
+impl<E: ExternalEntity, K: ProtocolKindType> Default for GlobalDiffHandler<E, K> {
     fn default() -> Self {
         Self {
             mut_receiver_builders: HashMap::default(),
@@ -16,7 +16,7 @@ impl<E: Copy + Eq + Hash, K: ProtocolKindType> Default for GlobalDiffHandler<E, 
     }
 }
 
-impl<E: Copy + Eq + Hash, K: ProtocolKindType> GlobalDiffHandler<E, K> {
+impl<E: ExternalEntity, K: ProtocolKindType> GlobalDiffHandler<E, K> {
     // For Server
     pub fn register_component(
         &mut self,

@@ -3,19 +3,13 @@ use std::{
     hash::Hash,
 };
 
-use naia_shared::{
-    message_list_header,
-    serde::{BitReader, Serde, SerdeErr, UnsignedVariableInteger},
-    BigMap, ChannelIndex, EntityAction, EntityActionReceiver, EntityActionType, EntityHandle,
-    EntityHandleConverter, MessageId, NetEntity, NetEntityHandleConverter, Protocolize, Tick,
-    WorldMutType,
-};
+use naia_shared::{message_list_header, serde::{BitReader, Serde, SerdeErr, UnsignedVariableInteger}, BigMap, ChannelIndex, EntityAction, EntityActionReceiver, EntityActionType, EntityHandle, EntityHandleConverter, MessageId, NetEntity, NetEntityHandleConverter, Protocolize, Tick, WorldMutType, ExternalEntity};
 
 use crate::{error::NaiaClientError, event::Event};
 
 use super::entity_record::EntityRecord;
 
-pub struct EntityManager<P: Protocolize, E: Copy + Eq + Hash> {
+pub struct EntityManager<P: Protocolize, E: ExternalEntity> {
     entity_records: HashMap<E, EntityRecord<P::Kind>>,
     local_to_world_entity: HashMap<NetEntity, E>,
     pub handle_entity_map: BigMap<EntityHandle, E>,
@@ -23,7 +17,7 @@ pub struct EntityManager<P: Protocolize, E: Copy + Eq + Hash> {
     received_components: HashMap<(NetEntity, P::Kind), P>,
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash> Default for EntityManager<P, E> {
+impl<P: Protocolize, E: ExternalEntity> Default for EntityManager<P, E> {
     fn default() -> Self {
         Self {
             entity_records: HashMap::default(),
@@ -35,7 +29,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash> Default for EntityManager<P, E> {
     }
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
+impl<P: Protocolize, E: ExternalEntity> EntityManager<P, E> {
     // Action Reader
 
     pub fn read_all<W: WorldMutType<P, E>, C: ChannelIndex>(
@@ -355,7 +349,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
     }
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash> EntityHandleConverter<E> for EntityManager<P, E> {
+impl<P: Protocolize, E: ExternalEntity> EntityHandleConverter<E> for EntityManager<P, E> {
     fn handle_to_entity(&self, entity_handle: &EntityHandle) -> E {
         *self
             .handle_entity_map
@@ -371,7 +365,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityHandleConverter<E> for EntityMan
     }
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash> NetEntityHandleConverter for EntityManager<P, E> {
+impl<P: Protocolize, E: ExternalEntity> NetEntityHandleConverter for EntityManager<P, E> {
     fn handle_to_net_entity(&self, entity_handle: &EntityHandle) -> NetEntity {
         let entity = self
             .handle_entity_map

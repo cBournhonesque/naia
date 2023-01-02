@@ -6,16 +6,16 @@ use std::{
 
 use crate::{
     sequence_less_than, EntityAction, MessageId as ActionId, ProtocolKindType,
-    UnorderedReliableReceiver,
+    UnorderedReliableReceiver, ExternalEntity
 };
 
 // TODO: maybe make this ordered?
-pub struct EntityActionReceiver<E: Copy + Hash + Eq, K: ProtocolKindType> {
+pub struct EntityActionReceiver<E: ExternalEntity, K: ProtocolKindType> {
     receiver: UnorderedReliableReceiver<EntityAction<E, K>>,
     entity_channels: HashMap<E, EntityChannel<E, K>>,
 }
 
-impl<E: Copy + Hash + Eq, K: ProtocolKindType> Default for EntityActionReceiver<E, K> {
+impl<E: ExternalEntity, K: ProtocolKindType> Default for EntityActionReceiver<E, K> {
     fn default() -> Self {
         Self {
             receiver: UnorderedReliableReceiver::default(),
@@ -24,7 +24,7 @@ impl<E: Copy + Hash + Eq, K: ProtocolKindType> Default for EntityActionReceiver<
     }
 }
 
-impl<E: Copy + Hash + Eq, K: ProtocolKindType> EntityActionReceiver<E, K> {
+impl<E: ExternalEntity, K: ProtocolKindType> EntityActionReceiver<E, K> {
     /// Add a received EntityAction to the internal buffer
     pub fn buffer_action(&mut self, action_id: ActionId, action: EntityAction<E, K>) {
         self.receiver.buffer_message(action_id, action)
@@ -49,7 +49,7 @@ impl<E: Copy + Hash + Eq, K: ProtocolKindType> EntityActionReceiver<E, K> {
 
 // Entity Channel
 
-pub struct EntityChannel<E: Copy + Hash + Eq, K: ProtocolKindType> {
+pub struct EntityChannel<E: ExternalEntity, K: ProtocolKindType> {
     entity: E,
     last_canonical_id: Option<ActionId>,
     spawned: bool,
@@ -58,7 +58,7 @@ pub struct EntityChannel<E: Copy + Hash + Eq, K: ProtocolKindType> {
     waiting_despawns: OrderedIds<()>,
 }
 
-impl<E: Copy + Hash + Eq, K: ProtocolKindType> EntityChannel<E, K> {
+impl<E: ExternalEntity, K: ProtocolKindType> EntityChannel<E, K> {
     pub fn new(entity: E) -> Self {
         Self {
             entity,
@@ -282,7 +282,7 @@ impl<E: Copy + Hash + Eq, K: ProtocolKindType> EntityChannel<E, K> {
 // Component Channel
 // most of this should be public, no methods here
 
-pub struct ComponentChannel<E: Copy + Hash + Eq, K: ProtocolKindType> {
+pub struct ComponentChannel<E: ExternalEntity, K: ProtocolKindType> {
     pub inserted: bool,
     pub last_canonical_id: Option<ActionId>,
     pub waiting_inserts: OrderedIds<()>,
@@ -292,7 +292,7 @@ pub struct ComponentChannel<E: Copy + Hash + Eq, K: ProtocolKindType> {
     phantom_k: PhantomData<K>,
 }
 
-impl<E: Copy + Hash + Eq, K: ProtocolKindType> ComponentChannel<E, K> {
+impl<E: ExternalEntity, K: ProtocolKindType> ComponentChannel<E, K> {
     pub fn new(canonical_id: Option<ActionId>) -> Self {
         Self {
             inserted: false,

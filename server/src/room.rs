@@ -3,7 +3,7 @@ use std::{
     hash::Hash,
 };
 
-use naia_shared::{BigMapKey, ChannelIndex};
+use naia_shared::{BigMapKey, ChannelIndex, ExternalEntity};
 
 use super::user::UserKey;
 
@@ -22,13 +22,13 @@ impl BigMapKey for RoomKey {
 }
 
 // Room
-pub struct Room<E: Copy + Eq + Hash> {
+pub struct Room<E: ExternalEntity> {
     users: HashSet<UserKey>,
     entities: HashSet<E>,
     entity_removal_queue: VecDeque<(UserKey, E)>,
 }
 
-impl<E: Copy + Eq + Hash> Room<E> {
+impl<E: ExternalEntity> Room<E> {
     pub(crate) fn new() -> Room<E> {
         Room {
             users: HashSet::new(),
@@ -100,12 +100,12 @@ use super::server::Server;
 
 // RoomRef
 
-pub struct RoomRef<'s, P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> {
+pub struct RoomRef<'s, P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> {
     server: &'s Server<P, E, C>,
     key: RoomKey,
 }
 
-impl<'s, P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> RoomRef<'s, P, E, C> {
+impl<'s, P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> RoomRef<'s, P, E, C> {
     pub fn new(server: &'s Server<P, E, C>, key: &RoomKey) -> Self {
         RoomRef { server, key: *key }
     }
@@ -136,12 +136,12 @@ impl<'s, P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> Roo
 }
 
 // RoomMut
-pub struct RoomMut<'s, P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> {
+pub struct RoomMut<'s, P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> {
     server: &'s mut Server<P, E, C>,
     key: RoomKey,
 }
 
-impl<'s, P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> RoomMut<'s, P, E, C> {
+impl<'s, P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> RoomMut<'s, P, E, C> {
     pub fn new(server: &'s mut Server<P, E, C>, key: &RoomKey) -> Self {
         RoomMut { server, key: *key }
     }

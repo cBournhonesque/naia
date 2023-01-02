@@ -1,10 +1,6 @@
 use std::{collections::VecDeque, hash::Hash, net::SocketAddr, time::Duration};
 
-use naia_shared::{
-    serde::{BitReader, BitWriter, OwnedBitReader},
-    BaseConnection, ChannelConfig, ChannelIndex, ConnectionConfig, HostType, Instant, PacketType,
-    PingManager, ProtocolIo, Protocolize, StandardHeader, Tick, WorldMutType,
-};
+use naia_shared::{serde::{BitReader, BitWriter, OwnedBitReader}, BaseConnection, ChannelConfig, ChannelIndex, ConnectionConfig, HostType, Instant, PacketType, PingManager, ProtocolIo, Protocolize, StandardHeader, Tick, WorldMutType, ExternalEntity};
 
 use crate::{
     error::NaiaClientError,
@@ -17,7 +13,7 @@ use crate::{
 
 use super::io::Io;
 
-pub struct Connection<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> {
+pub struct Connection<P: Protocolize, E: ExternalEntity, C: ChannelIndex> {
     pub base: BaseConnection<P, C>,
     pub entity_manager: EntityManager<P, E>,
     pub ping_manager: PingManager,
@@ -25,7 +21,7 @@ pub struct Connection<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> {
     jitter_buffer: TickQueue<OwnedBitReader>,
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> Connection<P, E, C> {
+impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Connection<P, E, C> {
     pub fn new(
         address: SocketAddr,
         connection_config: &ConnectionConfig,

@@ -15,8 +15,8 @@ use naia_shared::{
     ChannelIndex, EntityHandle, EntityHandleConverter, Tick,
 };
 pub use naia_shared::{
-    wrapping_diff, BaseConnection, BigMap, ConnectionConfig, Instant, KeyGenerator, NetEntity,
-    PacketType, PingConfig, PropertyMutate, PropertyMutator, ProtocolKindType, Protocolize,
+    wrapping_diff, BaseConnection, BigMap, ConnectionConfig, Instant, KeyGenerator, ExternalEntity,
+    NetEntity, PacketType, PingConfig, PropertyMutate, PropertyMutator, ProtocolKindType, Protocolize,
     Replicate, ReplicateSafe, SharedConfig, StandardHeader, Timer, Timestamp, WorldMutType,
     WorldRefType,
 };
@@ -49,7 +49,7 @@ use super::{
 /// messages to/from connected clients, and syncs registered entities to
 /// clients to whom they are in-scope
 #[cfg_attr(feature = "bevy_support", derive(Resource))]
-pub struct Server<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> {
+pub struct Server<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> {
     // Config
     server_config: ServerConfig,
     shared_config: SharedConfig<C>,
@@ -75,7 +75,7 @@ pub struct Server<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelI
     tick_manager: Option<TickManager>,
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> Server<P, E, C> {
+impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> Server<P, E, C> {
     /// Create a new Server
     pub fn new(server_config: &ServerConfig, shared_config: &SharedConfig<C>) -> Self {
         let socket = Socket::new(&shared_config.socket);
@@ -1184,7 +1184,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> Server<
     }
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> EntityHandleConverter<E>
+impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> EntityHandleConverter<E>
     for Server<P, E, C>
 {
     fn handle_to_entity(&self, entity_handle: &EntityHandle) -> E {

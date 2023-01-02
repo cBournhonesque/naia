@@ -11,6 +11,7 @@ pub use naia_shared::{
     PingIndex, ProtocolKindType, Protocolize, ReplicateSafe, SharedConfig, SocketConfig,
     StandardHeader, Tick, Timer, Timestamp, WorldMutType, WorldRefType,
 };
+use naia_shared::ExternalEntity;
 
 use crate::{
     connection::{
@@ -27,7 +28,7 @@ use super::{client_config::ClientConfig, error::NaiaClientError, event::Event};
 /// Client can send/receive messages to/from a server, and has a pool of
 /// in-scope entities/components that are synced with the server
 #[cfg_attr(feature = "bevy_support", derive(Resource))]
-pub struct Client<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> {
+pub struct Client<P: Protocolize, E: ExternalEntity, C: ChannelIndex> {
     // Config
     client_config: ClientConfig,
     shared_config: SharedConfig<C>,
@@ -43,7 +44,7 @@ pub struct Client<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> {
     phantom_k: PhantomData<E>,
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> Client<P, E, C> {
+impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Client<P, E, C> {
     /// Create a new Client
     pub fn new(client_config: &ClientConfig, shared_config: &SharedConfig<C>) -> Self {
         let handshake_manager = HandshakeManager::new(client_config.send_handshake_interval);
@@ -497,7 +498,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> Client<P, E, C> {
     }
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> EntityHandleConverter<E>
+impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> EntityHandleConverter<E>
     for Client<P, E, C>
 {
     fn handle_to_entity(&self, entity_handle: &EntityHandle) -> E {

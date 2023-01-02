@@ -4,12 +4,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use naia_shared::{
-    sequence_greater_than,
-    serde::{BitReader, BitWriter, SerdeErr},
-    BaseConnection, ChannelConfig, ChannelIndex, ConnectionConfig, EntityConverter, HostType,
-    Instant, PacketType, PingManager, ProtocolIo, Protocolize, StandardHeader, Tick, WorldRefType,
-};
+use naia_shared::{sequence_greater_than, serde::{BitReader, BitWriter, SerdeErr}, BaseConnection, ChannelConfig, ChannelIndex, ConnectionConfig, EntityConverter, HostType, Instant, PacketType, PingManager, ProtocolIo, Protocolize, StandardHeader, Tick, WorldRefType, ExternalEntity};
 
 use crate::{
     protocol::{
@@ -22,7 +17,7 @@ use crate::{
 
 use super::io::Io;
 
-pub struct Connection<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> {
+pub struct Connection<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> {
     pub user_key: UserKey,
     pub base: BaseConnection<P, C>,
     pub entity_manager: EntityManager<P, E, C>,
@@ -31,7 +26,7 @@ pub struct Connection<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: Chan
     pub ping_manager: PingManager,
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> Connection<P, E, C> {
+impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> Connection<P, E, C> {
     pub fn new(
         connection_config: &ConnectionConfig,
         channel_config: &ChannelConfig<C>,

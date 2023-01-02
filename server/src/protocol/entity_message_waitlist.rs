@@ -1,4 +1,4 @@
-use naia_shared::{ChannelIndex, KeyGenerator, MessageManager, Protocolize};
+use naia_shared::{ChannelIndex, ExternalEntity, KeyGenerator, MessageManager, Protocolize};
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
@@ -6,7 +6,7 @@ use std::{
 
 type MessageHandle = u16;
 
-pub struct EntityMessageWaitlist<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> {
+pub struct EntityMessageWaitlist<P: Protocolize, E: ExternalEntity, C: ChannelIndex> {
     message_handle_store: KeyGenerator<MessageHandle>,
     messages: HashMap<MessageHandle, (Vec<E>, C, P)>,
     waiting_entities: HashMap<E, HashSet<MessageHandle>>,
@@ -14,7 +14,7 @@ pub struct EntityMessageWaitlist<P: Protocolize, E: Copy + Eq + Hash, C: Channel
     ready_messages: Vec<(C, P)>,
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> Default
+impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Default
     for EntityMessageWaitlist<P, E, C>
 {
     fn default() -> Self {
@@ -28,7 +28,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> Default
     }
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> EntityMessageWaitlist<P, E, C> {
+impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> EntityMessageWaitlist<P, E, C> {
     pub fn queue_message(&mut self, entities: Vec<E>, channel: C, message: P) {
         let new_handle = self.message_handle_store.generate();
 

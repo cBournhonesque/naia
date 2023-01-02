@@ -1,22 +1,19 @@
 use std::{hash::Hash, marker::PhantomData};
 
-use naia_shared::{
-    ChannelIndex, Protocolize, ReplicaMutWrapper, ReplicaRefWrapper, Replicate, ReplicateSafe,
-    WorldMutType, WorldRefType,
-};
+use naia_shared::{ChannelIndex, ExternalEntity, Protocolize, ReplicaMutWrapper, ReplicaRefWrapper, Replicate, ReplicateSafe, WorldMutType, WorldRefType};
 
 use crate::{room::RoomKey, server::Server};
 
 // EntityRef
 
 /// A reference to an Entity being tracked by the Server
-pub struct EntityRef<P: Protocolize, E: Copy + Eq + Hash, W: WorldRefType<P, E>> {
+pub struct EntityRef<P: Protocolize, E: ExternalEntity, W: WorldRefType<P, E>> {
     phantom_p: PhantomData<P>,
     world: W,
     entity: E,
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash, W: WorldRefType<P, E>> EntityRef<P, E, W> {
+impl<P: Protocolize, E: ExternalEntity, W: WorldRefType<P, E>> EntityRef<P, E, W> {
     /// Return a new EntityRef
     pub(crate) fn new(world: W, entity: &E) -> Self {
         EntityRef {
@@ -48,7 +45,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash, W: WorldRefType<P, E>> EntityRef<P, E,
 pub struct EntityMut<
     's,
     P: Protocolize,
-    E: Copy + Eq + Hash + Send + Sync,
+    E: ExternalEntity + Send + Sync,
     W: WorldMutType<P, E>,
     C: ChannelIndex,
 > {
@@ -60,7 +57,7 @@ pub struct EntityMut<
 impl<
         's,
         P: Protocolize,
-        E: Copy + Eq + Hash + Send + Sync,
+        E: ExternalEntity + Send + Sync,
         W: WorldMutType<P, E>,
         C: ChannelIndex,
     > EntityMut<'s, P, E, W, C>

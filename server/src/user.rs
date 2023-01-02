@@ -1,6 +1,6 @@
 use std::{hash::Hash, net::SocketAddr};
 
-use naia_shared::{BigMapKey, ChannelIndex, Protocolize};
+use naia_shared::{BigMapKey, ChannelIndex, ExternalEntity, Protocolize};
 
 use crate::{RoomKey, Server};
 
@@ -33,12 +33,12 @@ impl User {
 
 // UserRef
 
-pub struct UserRef<'s, P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> {
+pub struct UserRef<'s, P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> {
     server: &'s Server<P, E, C>,
     key: UserKey,
 }
 
-impl<'s, P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> UserRef<'s, P, E, C> {
+impl<'s, P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> UserRef<'s, P, E, C> {
     pub fn new(server: &'s Server<P, E, C>, key: &UserKey) -> Self {
         UserRef { server, key: *key }
     }
@@ -53,12 +53,12 @@ impl<'s, P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> Use
 }
 
 // UserMut
-pub struct UserMut<'s, P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> {
+pub struct UserMut<'s, P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> {
     server: &'s mut Server<P, E, C>,
     key: UserKey,
 }
 
-impl<'s, P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> UserMut<'s, P, E, C> {
+impl<'s, P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> UserMut<'s, P, E, C> {
     pub fn new(server: &'s mut Server<P, E, C>, key: &UserKey) -> Self {
         UserMut { server, key: *key }
     }

@@ -1,4 +1,5 @@
 use std::collections::VecDeque;
+use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::{Deref, DerefMut};
 
@@ -11,6 +12,9 @@ use crate::{
         property_mutate::PropertyMutator,
     },
 };
+
+pub trait ExternalEntity: Eq + Copy + Hash + Debug {}
+impl<T: Eq + Copy + Hash + Debug> ExternalEntity for T {}
 
 #[cfg(feature = "bevy_support")]
 use bevy_reflect::Reflect;
@@ -25,7 +29,6 @@ pub struct EntityProperty {
     // We should also update the new_complete function to directly support entity initialization as well
     // We don't really allow partial replicate messages anyway!
     handle_prop: Property<Option<EntityHandle>>,
-
 }
 
 impl EntityProperty {
@@ -33,11 +36,11 @@ impl EntityProperty {
         *self.handle_prop
     }
 
-    pub fn get<E: Copy + Eq + Hash>(&self, handler: &dyn EntityHandleConverter<E>) -> Option<E> {
+    pub fn get<E: ExternalEntity>(&self, handler: &dyn EntityHandleConverter<E>) -> Option<E> {
         (*self.handle_prop).map(|handle| handler.handle_to_entity(&handle))
     }
 
-    pub fn set<E: Copy + Eq + Hash>(&mut self, handler: &dyn EntityHandleConverter<E>, entity: &E) {
+    pub fn set<E: ExternalEntity>(&mut self, handler: &dyn EntityHandleConverter<E>, entity: &E) {
         let new_handle = handler.entity_to_handle(entity);
         *self.handle_prop = Some(new_handle);
     }
@@ -151,11 +154,11 @@ impl VecDequeEntityProperty {
         (*self.0).clone()
     }
 
-    pub fn get<E: Copy + Eq + Hash>(&self, handler: &dyn EntityHandleConverter<E>) -> VecDeque<E> {
+    pub fn get<E: ExternalEntity>(&self, handler: &dyn EntityHandleConverter<E>) -> VecDeque<E> {
         self.0.iter().map(|handle| handler.handle_to_entity(handle)).collect()
     }
 
-    pub fn set<E: Copy + Eq + Hash>(&mut self, handler: &dyn EntityHandleConverter<E>, entities: &VecDeque<E>) {
+    pub fn set<E: ExternalEntity>(&mut self, handler: &dyn EntityHandleConverter<E>, entities: &VecDeque<E>) {
         let mut queue = VecDeque::<EntityHandle>::new();
         entities.iter().for_each(|e| {
             let new_handle = handler.entity_to_handle(e);
@@ -164,12 +167,12 @@ impl VecDequeEntityProperty {
         *self.0 = queue;
     }
 
-    pub fn push_front<E: Copy + Eq + Hash>(&mut self, handler: &dyn EntityHandleConverter<E>, entity: &E) {
+    pub fn push_front<E: ExternalEntity>(&mut self, handler: &dyn EntityHandleConverter<E>, entity: &E) {
         let new_handle = handler.entity_to_handle(entity);
         self.0.push_front(new_handle);
     }
 
-    pub fn push_back<E: Copy + Eq + Hash>(&mut self, handler: &dyn EntityHandleConverter<E>, entity: &E) {
+    pub fn push_back<E: ExternalEntity>(&mut self, handler: &dyn EntityHandleConverter<E>, entity: &E) {
         let new_handle = handler.entity_to_handle(entity);
         self.0.push_back(new_handle);
     }
@@ -259,7 +262,7 @@ impl DerefMut for VecDequeEntityProperty{
 
 
 
-pub trait EntityHandleConverter<E: Copy + Eq + Hash> {
+pub trait EntityHandleConverter<E: ExternalEntity> {
     fn handle_to_entity(&self, entity_handle: &EntityHandle) -> E;
     fn entity_to_handle(&self, entity: &E) -> EntityHandle;
 }
@@ -269,7 +272,7 @@ pub trait NetEntityHandleConverter {
     fn net_entity_to_handle(&self, net_entity: &NetEntity) -> EntityHandle;
 }
 
-pub trait NetEntityConverter<E: Copy + Eq + Hash> {
+pub trait NetEntityConverter<E: ExternalEntity> {
     fn entity_to_net_entity(&self, entity: &E) -> NetEntity;
     fn net_entity_to_entity(&self, net_entity: &NetEntity) -> E;
 }
@@ -286,12 +289,12 @@ impl NetEntityHandleConverter for FakeEntityConverter {
     }
 }
 
-pub struct EntityConverter<'a, 'b, E: Eq + Copy + Hash> {
+pub struct EntityConverter<'a, 'b, E: ExternalEntity> {
     handle_converter: &'a dyn EntityHandleConverter<E>,
     net_entity_converter: &'b dyn NetEntityConverter<E>,
 }
 
-impl<'a, 'b, E: Eq + Copy + Hash> EntityConverter<'a, 'b, E> {
+impl<'a, 'b, E: ExternalEntity> EntityConverter<'a, 'b, E> {
     pub fn new(
         handle_converter: &'a dyn EntityHandleConverter<E>,
         net_entity_converter: &'b dyn NetEntityConverter<E>,
@@ -303,7 +306,7 @@ impl<'a, 'b, E: Eq + Copy + Hash> EntityConverter<'a, 'b, E> {
     }
 }
 
-impl<'a, 'b, E: Copy + Eq + Hash> NetEntityHandleConverter for EntityConverter<'a, 'b, E> {
+impl<'a, 'b, E: ExternalEntity> NetEntityHandleConverter for EntityConverter<'a, 'b, E> {
     fn handle_to_net_entity(&self, entity_handle: &EntityHandle) -> NetEntity {
         let entity = self.handle_converter.handle_to_entity(entity_handle);
         self.net_entity_converter.entity_to_net_entity(&entity)

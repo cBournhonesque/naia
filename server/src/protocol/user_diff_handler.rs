@@ -5,17 +5,17 @@ use std::{
     sync::{Arc, RwLock, RwLockReadGuard},
 };
 
-use naia_shared::{DiffMask, ProtocolKindType};
+use naia_shared::{DiffMask, ExternalEntity, ProtocolKindType};
 
 use super::{global_diff_handler::GlobalDiffHandler, mut_channel::MutReceiver};
 
 #[derive(Clone)]
-pub struct UserDiffHandler<E: Copy + Eq + Hash, K: ProtocolKindType> {
+pub struct UserDiffHandler<E: ExternalEntity, K: ProtocolKindType> {
     receivers: HashMap<(E, K), MutReceiver>,
     global_diff_handler: Arc<RwLock<GlobalDiffHandler<E, K>>>,
 }
 
-impl<E: Copy + Eq + Hash, K: ProtocolKindType> UserDiffHandler<E, K> {
+impl<E: ExternalEntity, K: ProtocolKindType> UserDiffHandler<E, K> {
     pub fn new(global_diff_handler: &Arc<RwLock<GlobalDiffHandler<E, K>>>) -> Self {
         UserDiffHandler {
             receivers: HashMap::new(),

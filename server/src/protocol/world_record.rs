@@ -1,15 +1,16 @@
 use std::{collections::HashMap, hash::Hash};
+use std::fmt::Debug;
 
-use naia_shared::{BigMap, EntityHandle, EntityHandleConverter, ProtocolKindType};
+use naia_shared::{BigMap, EntityHandle, EntityHandleConverter, ProtocolKindType, ExternalEntity};
 
 use crate::{protocol::global_entity_record::GlobalEntityRecord, room::RoomKey};
 
-pub struct WorldRecord<E: Copy + Eq + Hash, K: ProtocolKindType> {
+pub struct WorldRecord<E: ExternalEntity, K: ProtocolKindType> {
     entity_records: HashMap<E, GlobalEntityRecord<K>>,
     handle_entity_map: BigMap<EntityHandle, E>,
 }
 
-impl<E: Copy + Eq + Hash, K: ProtocolKindType> Default for WorldRecord<E, K> {
+impl<E: ExternalEntity, K: ProtocolKindType> Default for WorldRecord<E, K> {
     fn default() -> Self {
         Self {
             entity_records: HashMap::default(),
@@ -18,7 +19,7 @@ impl<E: Copy + Eq + Hash, K: ProtocolKindType> Default for WorldRecord<E, K> {
     }
 }
 
-impl<E: Copy + Eq + Hash, K: ProtocolKindType> WorldRecord<E, K> {
+impl<E: ExternalEntity, K: ProtocolKindType> WorldRecord<E, K> {
     // Sync w/ World & Server
 
     pub fn spawn_entity(&mut self, entity: &E) {
@@ -98,7 +99,7 @@ impl<E: Copy + Eq + Hash, K: ProtocolKindType> WorldRecord<E, K> {
     }
 }
 
-impl<E: Copy + Eq + Hash, K: ProtocolKindType> EntityHandleConverter<E> for WorldRecord<E, K> {
+impl<E: ExternalEntity, K: ProtocolKindType> EntityHandleConverter<E> for WorldRecord<E, K> {
     fn handle_to_entity(&self, handle: &EntityHandle) -> E {
         return *self
             .handle_entity_map
@@ -110,7 +111,7 @@ impl<E: Copy + Eq + Hash, K: ProtocolKindType> EntityHandleConverter<E> for Worl
         return self
             .entity_records
             .get(entity)
-            .expect("entity does not exist!")
+            .expect(&format!("entity does not exist: {:?}!", *entity))
             .entity_handle;
     }
 }

@@ -5,10 +5,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use naia_shared::{
-    ChannelIndex, ChannelSender, EntityAction, EntityActionReceiver, KeyGenerator, NetEntity,
-    ProtocolKindType, Protocolize, ReliableSender,
-};
+use naia_shared::{ChannelIndex, ChannelSender, EntityAction, EntityActionReceiver, KeyGenerator, NetEntity, ProtocolKindType, Protocolize, ReliableSender, ExternalEntity};
 
 use crate::{
     protocol::{
@@ -39,7 +36,7 @@ pub enum EntityChannel<K: ProtocolKindType> {
 
 // WorldChannel
 
-pub struct WorldChannel<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> {
+pub struct WorldChannel<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> {
     host_world: CheckedMap<E, CheckedSet<P::Kind>>,
     remote_world: CheckedMap<E, CheckedSet<P::Kind>>,
     entity_channels: CheckedMap<E, EntityChannel<P::Kind>>,
@@ -54,7 +51,7 @@ pub struct WorldChannel<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: Ch
     pub delayed_entity_messages: EntityMessageWaitlist<P, E, C>,
 }
 
-impl<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> WorldChannel<P, E, C> {
+impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> WorldChannel<P, E, C> {
     pub fn new(
         address: SocketAddr,
         diff_handler: &Arc<RwLock<GlobalDiffHandler<E, P::Kind>>>,
