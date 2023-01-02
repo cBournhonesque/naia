@@ -41,6 +41,10 @@ impl EntityProperty {
         let new_handle = handler.entity_to_handle(entity);
         *self.handle_prop = Some(new_handle);
     }
+
+    pub fn set_none(&mut self) {
+        *self.handle_prop = None;
+    }
 }
 
 
