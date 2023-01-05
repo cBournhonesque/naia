@@ -17,6 +17,12 @@ pub struct Property<T: Serde> {
     mutator_index: u8,
 }
 
+impl<T: Serde> PartialEq for Property<T> where T: PartialEq {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner.eq(&other.inner)
+    }
+}
+
 impl<T: Serde> Serialize for Property<T> where T: Serialize {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         self.inner.serialize(serializer)
