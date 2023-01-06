@@ -109,7 +109,7 @@ cfg_if! {
     if #[cfg(feature = "bevy_support")]
     {
         use std::any::Any;
-        use bevy_reflect::{Reflect, ReflectMut, ReflectOwned, ReflectRef, TypeInfo};
+        use bevy_reflect::{FromReflect, Reflect, ReflectMut, ReflectOwned, ReflectRef, TypeInfo};
 
         impl<T: Serde> Reflect for Property<T> where T: Reflect {
             fn type_name(&self) -> &str {
@@ -167,7 +167,18 @@ cfg_if! {
             fn clone_value(&self) -> Box<dyn Reflect> {
                 self.inner.clone_value()
             }
-}
+        }
+
+        impl<T: Serde> FromReflect for Property<T> where T: FromReflect {
+
+            fn from_reflect(reflect: &dyn Reflect) -> Option<Self> {
+                match T::from_reflect(reflect) {
+                    None => None,
+                    Some(inner) => Some(Self::new(inner, 0))
+                }
+            }
+
+        }
 
     }
 
