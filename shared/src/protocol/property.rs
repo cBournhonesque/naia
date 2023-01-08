@@ -1,5 +1,5 @@
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Deref, DerefMut, Add, AddAssign, Mul, MulAssign};
+use std::ops::{Deref, DerefMut, Add, AddAssign, Mul, MulAssign, Sub};
 
 
 use ::serde::{Serialize, Deserialize, Serializer, Deserializer};
@@ -39,6 +39,17 @@ impl<'de, T: Serde> Deserialize<'de> for Property<T> where T: Deserialize<'de> {
     }
 }
 
+
+impl<T: Serde> Sub for Property<T>
+    where T: Sub<Output = T> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let mut res = self.clone();
+        *res = self.inner - rhs.inner;
+        res
+    }
+}
 
 
 impl<T: Serde> Add for Property<T>
