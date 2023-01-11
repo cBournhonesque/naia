@@ -13,7 +13,7 @@ edition = "2021"
 maintenance = { status = "actively-developed" }
 
 [features]
-debug = ["naia-client/debug"]
+debug = ["naia-client/debug", "naia-bevy-shared/debug"]
 bincode = ["naia-client/bincode"]
 
 [dependencies]
