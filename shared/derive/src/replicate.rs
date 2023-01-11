@@ -61,7 +61,7 @@ pub fn replicate_impl(input: proc_macro::TokenStream) -> proc_macro::TokenStream
     );
     let set_mutator_method = set_mutator_method(&properties, &struct_type);
     let read_apply_update_method =
-        read_apply_update_method(&protocol_kind_name, &properties, &struct_type);
+        read_apply_update_method(&protocol_kind_name, &enum_name, &properties, &struct_type);
     let write_method = write_method(&properties, &struct_type);
     let write_update_method = write_update_method(&enum_name, &properties, &struct_type);
     let has_entity_properties = has_entity_properties_method(&properties);
@@ -767,6 +767,7 @@ pub fn read_create_update_method(
 
 fn read_apply_update_method(
     kind_name: &Ident,
+    enum_name: &Ident,
     properties: &[Property],
     struct_type: &StructType,
 ) -> TokenStream {
@@ -776,18 +777,28 @@ fn read_apply_update_method(
         let field_name = get_field_name(property, index, struct_type);
         let new_output_right = match property {
             Property::Normal(property) => {
+                let uppercase_variant_name = &property.uppercase_variable_name;
                 let replicable_property_type = &property.replicable_property_type;
                 quote! {
                     if bool::de(reader)? {
-                        #replicable_property_type::read(&mut self.#field_name, reader)?;
+                        let property_update = #replicable_property_type::new_read(reader, #enum_name::#uppercase_variant_name as u8)?;
+                        if !self.#field_name.equals(&property_update) {
+                            self.#field_name.mirror(&property_update)
+                        }
+                        // #replicable_property_type::read(&mut self.#field_name, reader)?;
                     }
                 }
             }
             Property::Entity(property) => {
+                let uppercase_variant_name = &property.uppercase_variable_name;
                 let replicable_entity_property_type = &property.replicable_entity_property_type;
                 quote! {
                     if bool::de(reader)? {
-                        <#replicable_entity_property_type>::read(&mut self.#field_name, reader, converter)?;
+                        let property_update = <#replicable_entity_property_type>::new_read(reader, #enum_name::#uppercase_variant_name as u8, converter)?;
+                        if !self.#field_name.equals(&property_update) {
+                            self.#field_name.mirror(&property_update)
+                        }
+                        // <#replicable_entity_property_type>::read(&mut self.#field_name, reader, converter)?;
                     }
                 }
             }
