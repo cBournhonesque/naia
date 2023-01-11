@@ -3,6 +3,7 @@ use std::{
     hash::Hash,
     marker::PhantomData,
 };
+use tracing::debug;
 
 use crate::{
     sequence_less_than, EntityAction, MessageId as ActionId, ProtocolKindType,
@@ -251,7 +252,7 @@ impl<E: ExternalEntity, K: ProtocolKindType> EntityChannel<E, K> {
             component_state.inserted = false;
             outgoing_actions.push(EntityAction::RemoveComponent(self.entity, component));
 
-            log::debug!("Remove component for entity");
+            debug!("Remove component for entity");
 
             // pop ALL waiting inserts, and removes OLDER than remove_id (in reference to
             // component)

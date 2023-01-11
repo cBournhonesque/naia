@@ -13,9 +13,9 @@ edition = "2021"
 maintenance = { status = "actively-developed" }
 
 [features]
-debug = ["dep:log"]
+debug = []
 
 [dependencies]
 naia-shared = { version = "0.14", path = "../../../shared", features = ["bevy_support", "wbindgen"] }
 bevy_ecs = { version = "0.9", default-features=false }
-log = {version = "0.4", optional = true}
+tracing = { version = "0.1" }

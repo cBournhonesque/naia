@@ -30,3 +30,4 @@ naia-shared = { version = "0.14", path = "../shared" }
 cfg-if = { version = "1.0" }
 log = { version = "0.4" }
 bevy_ecs = { version = "0.9", default_features = false, optional = true }
+tracing = { version = "0.1" }

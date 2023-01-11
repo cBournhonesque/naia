@@ -2,6 +2,7 @@ use std::{collections::VecDeque, hash::Hash, marker::PhantomData, net::SocketAdd
 
 #[cfg(feature = "bevy_support")]
 use bevy_ecs::prelude::Resource;
+use tracing::debug_span;
 
 use naia_client_socket::Socket;
 
@@ -128,6 +129,7 @@ impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Client<P, E, C> {
         &mut self,
         mut world: W,
     ) -> VecDeque<Result<Event<P, E, C>, NaiaClientError>> {
+        debug_span!("receive");
         // Need to run this to maintain connection with server, and receive packets
         // until none left
         self.maintain_socket();

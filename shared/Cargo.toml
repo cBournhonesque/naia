@@ -28,9 +28,9 @@ naia-socket-shared = { version = "0.10", path = "../socket/shared" }
 naia-derive = { version = "0.13", path = "derive" }
 naia-serde = { version = "0.13", path = "serde" }
 serde = { version = "1.0", features = [ "derive" ] }
-log = { version = "0.4" }
 cfg-if = { version = "1.0" }
 js-sys = { version = "0.3", optional = true }
 bevy_ecs = { version = "0.9", default_features = false, optional = true }
 zstd = { version = "0.11.1", optional = true }
 bevy_reflect = { version = "0.9", optional = true }
+tracing = { version = "0.1" }

@@ -9,7 +9,6 @@ use naia_server::{
     shared::{ChannelIndex, Protocolize},
     Event, Server,
 };
-
 use super::{
     events::{AuthorizationEvent, ConnectionEvent, DisconnectionEvent, MessageEvent},
     resource::ServerResource,
