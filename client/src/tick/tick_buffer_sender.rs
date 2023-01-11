@@ -1,4 +1,5 @@
 use std::{collections::HashMap, time::Duration};
+use tracing::trace_span;
 
 use naia_shared::{
     serde::{BitWriter, Serde, UnsignedVariableInteger},
@@ -46,6 +47,7 @@ impl<P: Protocolize, C: ChannelIndex> TickBufferSender<P, C> {
         client_sending_tick: &Tick,
         server_receivable_tick: &Tick,
     ) {
+        trace_span!("tick_buffered", client_sending_tick = client_sending_tick, server_receivable_tick = server_receivable_tick);
         for channel in self.channel_senders.values_mut() {
             channel.collect_outgoing_messages(client_sending_tick, server_receivable_tick);
         }

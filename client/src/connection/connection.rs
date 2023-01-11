@@ -1,4 +1,5 @@
 use std::{collections::VecDeque, hash::Hash, net::SocketAddr, time::Duration};
+use tracing::{debug_span, trace_span};
 
 use naia_shared::{
     serde::{BitReader, BitWriter, OwnedBitReader},
@@ -67,6 +68,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> Connection<P, E, C> {
         receiving_tick: Tick,
         incoming_events: &mut VecDeque<Result<Event<P, E, C>, NaiaClientError>>,
     ) {
+        debug_span!("receive_buffered", "receiving_tick" = receiving_tick);
         while let Some((server_tick, owned_reader)) = self.jitter_buffer.pop_item(receiving_tick) {
             let mut reader = owned_reader.borrow();
 
@@ -112,6 +114,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash, C: ChannelIndex> Connection<P, E, C> {
     }
 
     fn collect_outgoing_messages(&mut self, tick_manager_opt: &Option<TickManager>) {
+        trace_span!("collect_outgoing");
         let now = Instant::now();
 
         self.base

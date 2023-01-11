@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use tracing::debug_span;
 
 use naia_shared::{
     serde::{BitReader, Serde, SerdeErr, UnsignedVariableInteger},
@@ -50,6 +51,7 @@ impl<P: Protocolize, C: ChannelIndex> TickBufferReceiver<P, C> {
     }
 
     pub fn receive_messages(&mut self, host_tick: &Tick) -> Vec<(C, P)> {
+        debug_span!("tick_buffered", "server_tick" = host_tick);
         let mut output = Vec::new();
         for (channel_index, channel) in &mut self.channel_receivers {
             let mut messages = channel.receive_messages(host_tick);

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use tracing::{debug_span, trace, trace_span};
 
 use naia_serde::{BitReader, BitWriter, Serde, SerdeErr, UnsignedVariableInteger};
 use naia_socket_shared::Instant;
@@ -127,6 +128,7 @@ impl<P: Protocolize, C: ChannelIndex> MessageManager<P, C> {
     }
 
     pub fn collect_outgoing_messages(&mut self, now: &Instant, rtt_millis: &f32) {
+        trace_span!("messages");
         for channel in self.channel_senders.values_mut() {
             channel.collect_messages(now, rtt_millis);
         }
@@ -188,6 +190,8 @@ impl<P: Protocolize, C: ChannelIndex> MessageManager<P, C> {
         for _ in 0..channel_count {
             // read channel index
             let channel_index = C::de(reader)?;
+            // debug_span!("messages", "channel" = ?channel_index);
+            debug_span!("messages");
 
             // continue read inside channel
             if let Some(channel) = self.channel_receivers.get_mut(&channel_index) {
@@ -199,10 +203,12 @@ impl<P: Protocolize, C: ChannelIndex> MessageManager<P, C> {
     }
 
     pub fn receive_messages(&mut self) -> Vec<(C, P)> {
+        debug_span!("messages");
         let mut output = Vec::new();
         for (channel_index, channel) in &mut self.channel_receivers {
             let mut messages = channel.receive_messages();
             for message in messages.drain(..) {
+                trace!("got message");
                 output.push((channel_index.clone(), message));
             }
         }

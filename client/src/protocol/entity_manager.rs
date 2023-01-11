@@ -2,12 +2,13 @@ use std::{
     collections::{HashMap, VecDeque},
     hash::Hash,
 };
+use tracing::{trace, trace_span};
 
 use naia_shared::{
     message_list_header,
     serde::{BitReader, Serde, SerdeErr, UnsignedVariableInteger},
     BigMap, ChannelIndex, EntityAction, EntityActionReceiver, EntityActionType, EntityHandle,
-    EntityHandleConverter, MessageId, NetEntity, NetEntityHandleConverter, Protocolize, Tick,
+    EntityHandleConverter, MessageId, NetEntity, NetEntityHandleConverter, Protocolize, ProtocolKindType, Tick,
     WorldMutType,
 };
 
@@ -72,6 +73,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
         reader: &mut BitReader,
         event_stream: &mut VecDeque<Result<Event<P, E, C>, NaiaClientError>>,
     ) -> Result<(), SerdeErr> {
+        trace_span!("entity_actions");
         let mut last_read_id: Option<MessageId> = None;
         let action_count = message_list_header::read(reader)?;
         for _ in 0..action_count {
@@ -87,6 +89,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
         last_read_id: &mut Option<MessageId>,
     ) -> Result<(), SerdeErr> {
         let action_id = Self::read_message_id(reader, last_read_id)?;
+        trace_span!("read_action", id = action_id);
 
         let action_type = EntityActionType::de(reader)?;
 
@@ -96,12 +99,14 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
                 // read entity
                 let net_entity = NetEntity::de(reader)?;
 
+                trace_span!("spawn_entity", net_entity = ?net_entity);
                 // read components
                 let components_num = UnsignedVariableInteger::<3>::de(reader)?.get();
                 let mut component_kinds = Vec::new();
                 for _ in 0..components_num {
                     let new_component = P::read(reader, self)?;
                     let new_component_kind = new_component.dyn_ref().kind();
+                    trace_span!("component", id = ?new_component_kind.to_type_id());
                     self.received_components
                         .insert((net_entity, new_component_kind), new_component);
                     component_kinds.push(new_component_kind);
@@ -117,6 +122,8 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
                 // read all data
                 let net_entity = NetEntity::de(reader)?;
 
+                trace_span!("despawn_entity", net_entity = ?net_entity);
+
                 self.receiver
                     .buffer_action(action_id, EntityAction::DespawnEntity(net_entity));
             }
@@ -124,8 +131,10 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
             EntityActionType::InsertComponent => {
                 // read all data
                 let net_entity = NetEntity::de(reader)?;
+                trace_span!("despawn_entity", net_entity = ?net_entity);
                 let new_component = P::read(reader, self)?;
                 let new_component_kind = new_component.dyn_ref().kind();
+                trace_span!("component", id = ?new_component_kind.to_type_id());
 
                 self.receiver.buffer_action(
                     action_id,
@@ -138,7 +147,9 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
             EntityActionType::RemoveComponent => {
                 // read all data
                 let net_entity = NetEntity::de(reader)?;
+                trace_span!("remove_component", net_entity = ?net_entity);
                 let component_kind = P::Kind::de(reader)?;
+                trace_span!("component", id = ?component_kind.to_type_id());
 
                 self.receiver.buffer_action(
                     action_id,
@@ -146,6 +157,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
                 );
             }
             EntityActionType::Noop => {
+                trace_span!("noop");
                 self.receiver.buffer_action(action_id, EntityAction::Noop);
             }
         }
@@ -289,6 +301,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
         reader: &mut BitReader,
         event_stream: &mut VecDeque<Result<Event<P, E, C>, NaiaClientError>>,
     ) -> Result<(), SerdeErr> {
+        trace_span!("entity_updates");
         let update_count = message_list_header::read(reader)?;
         for _ in 0..update_count {
             self.read_update(world, server_tick, reader, event_stream)?;
@@ -311,8 +324,10 @@ impl<P: Protocolize, E: Copy + Eq + Hash> EntityManager<P, E> {
             // read incoming update
             let component_update = P::read_create_update(reader)?;
             let component_kind = component_update.kind;
+            trace_span!("component", component_kind = ?component_kind.to_type_id());
 
             if let Some(world_entity) = self.local_to_world_entity.get(&net_entity) {
+                trace!("apply_update");
                 world.component_apply_update(
                     self,
                     world_entity,

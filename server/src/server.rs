@@ -20,6 +20,7 @@ pub use naia_shared::{
     Replicate, ReplicateSafe, SharedConfig, StandardHeader, Timer, Timestamp, WorldMutType,
     WorldRefType,
 };
+use tracing::debug_span;
 
 use crate::{
     connection::{
@@ -129,6 +130,7 @@ impl<P: Protocolize, E: Copy + Eq + Hash + Send + Sync, C: ChannelIndex> Server<
     /// Must be called regularly, maintains connection to and receives messages
     /// from all Clients
     pub fn receive(&mut self) -> VecDeque<Result<Event<P, C>, NaiaServerError>> {
+        debug_span!("receive");
         // Need to run this to maintain connection with all clients, and receive packets
         // until none left
         self.maintain_socket();

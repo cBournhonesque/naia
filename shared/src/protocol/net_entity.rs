@@ -5,7 +5,7 @@ use naia_serde::{BitReader, BitWrite, SerdeErr, UnsignedVariableInteger};
 
 // An Entity in the Client's scope, that is being
 // synced to the Client
-#[derive(Copy, Eq, Hash, Clone, PartialEq)]
+#[derive(Copy, Eq, Hash, Clone, PartialEq, Debug)]
 pub struct NetEntity(u16);
 
 impl From<NetEntity> for u16 {
