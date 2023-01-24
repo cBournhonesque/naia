@@ -27,4 +27,11 @@ impl<'s, P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex>
 
         self
     }
+
+    /// Remove all entities from the User's scope
+    pub fn reset(&mut self) -> &mut Self {
+        self.server.user_scope_remove_user(&self.key);
+
+        self
+    }
 }
