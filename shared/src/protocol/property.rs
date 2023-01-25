@@ -256,12 +256,12 @@ cfg_if! {
                         bevy_reflect::Struct::field_mut(self, name).map(|v| v.apply(value));
                     }
                 } else {
-                    ::core::panicking::panic_fmt(
-                        ::core::fmt::Arguments::new_v1(
-                            &["Attempted to apply non-struct type to struct type."],
-                            &[],
-                        ),
-                    );
+                    // ::core::panicking::panic_fmt(
+                    //     ::core::fmt::Arguments::new_v1(
+                    //         &["Attempted to apply non-struct type to struct type."],
+                    //         &[],
+                    //     ),
+                    // );
                 }
             }
             fn reflect_ref(&self) -> bevy_reflect::ReflectRef {
