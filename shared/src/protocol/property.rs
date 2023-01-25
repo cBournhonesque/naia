@@ -10,7 +10,7 @@ use crate::protocol::replicable_property::ReplicableProperty;
 
 /// A Property of an Component/Message, that contains data
 /// which must be tracked for updates
-// #[cfg_attr(feature = "bevy_support", derive(Reflect))]
+// #[cfg_attr(feature = "bevy_support", derive(Reflect), derive(FromReflect))]
 #[derive(Clone)]
 pub struct Property<T: Serde> {
     inner: T,
@@ -125,6 +125,25 @@ cfg_if! {
         use bevy_reflect::{FromReflect, Reflect, ReflectMut, ReflectOwned, ReflectRef, TypeInfo};
         use bevy_reflect::{GetTypeRegistration, TypeRegistration};
 
+        impl<T: Serde> bevy_reflect::FromReflect for Property<T>
+        where
+            T: bevy_reflect::FromReflect,
+        {
+            fn from_reflect(reflect: &dyn bevy_reflect::Reflect) -> Option<Self> {
+                if let bevy_reflect::ReflectRef::Struct(__ref_struct) = reflect.reflect_ref()
+                {
+                    Some(Self {
+                        inner: (|| <T as bevy_reflect::FromReflect>::from_reflect(
+                            bevy_reflect::Struct::field(__ref_struct, "inner")?,
+                        ))()?,
+                        mutator: None,
+                        mutator_index: 0,
+                    })
+                } else {
+                    None
+                }
+            }
+        }
         #[allow(unused_mut)]
         impl<T: Serde + Reflect> bevy_reflect::GetTypeRegistration for Property<T> {
             fn get_type_registration() -> bevy_reflect::TypeRegistration {
