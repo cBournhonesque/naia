@@ -150,8 +150,6 @@ cfg_if! {
                     >(|| {
                     let fields = [
                         bevy_reflect::NamedField::new::<T>("inner"),
-                        bevy_reflect::NamedField::new::<Option<PropertyMutator>>("mutator"),
-                        bevy_reflect::NamedField::new::<u8>("mutator_index"),
                     ];
                     let info = bevy_reflect::StructInfo::new::<Self>("Property", &fields);
                     bevy_reflect::TypeInfo::Struct(info)
@@ -162,24 +160,18 @@ cfg_if! {
             fn field(&self, name: &str) -> Option<&dyn bevy_reflect::Reflect> {
                 match name {
                     "inner" => Some(&self.inner),
-                    "mutator" => Some(&self.mutator),
-                    "mutator_index" => Some(&self.mutator_index),
                     _ => None,
                 }
             }
             fn field_mut(&mut self, name: &str) -> Option<&mut dyn bevy_reflect::Reflect> {
                 match name {
                     "inner" => Some(&mut self.inner),
-                    "mutator" => Some(&mut self.mutator),
-                    "mutator_index" => Some(&mut self.mutator_index),
                     _ => None,
                 }
             }
             fn field_at(&self, index: usize) -> Option<&dyn bevy_reflect::Reflect> {
                 match index {
                     0usize => Some(&self.inner),
-                    1usize => Some(&self.mutator),
-                    2usize => Some(&self.mutator_index),
                     _ => None,
                 }
             }
@@ -189,21 +181,17 @@ cfg_if! {
             ) -> Option<&mut dyn bevy_reflect::Reflect> {
                 match index {
                     0usize => Some(&mut self.inner),
-                    1usize => Some(&mut self.mutator),
-                    2usize => Some(&mut self.mutator_index),
                     _ => None,
                 }
             }
             fn name_at(&self, index: usize) -> Option<&str> {
                 match index {
                     0usize => Some("inner"),
-                    1usize => Some("mutator"),
-                    2usize => Some("mutator_index"),
                     _ => None,
                 }
             }
             fn field_len(&self) -> usize {
-                3usize
+                1usize
             }
             fn iter_fields(&self) -> bevy_reflect::FieldIter {
                 bevy_reflect::FieldIter::new(self)
@@ -212,8 +200,6 @@ cfg_if! {
                 let mut dynamic = bevy_reflect::DynamicStruct::default();
                 dynamic.set_name(self.type_name().to_string());
                 dynamic.insert_boxed("inner", self.inner.clone_value());
-                dynamic.insert_boxed("mutator", self.mutator.clone_value());
-                dynamic.insert_boxed("mutator_index", self.mutator_index.clone_value());
                 dynamic
             }
         }
