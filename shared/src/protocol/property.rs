@@ -121,6 +121,13 @@ cfg_if! {
     {
         use std::any::Any;
         use bevy_reflect::{FromReflect, Reflect, ReflectMut, ReflectOwned, ReflectRef, TypeInfo};
+        use bevy_reflect::{GetTypeRegistration, TypeRegistration};
+
+        impl<T: Serde> GetTypeRegistration for Property<T> where T: GetTypeRegistration {
+            fn get_type_registration() -> TypeRegistration {
+                T::get_type_registration()
+            }
+        }
 
         impl<T: Serde> Reflect for Property<T> where T: Reflect {
             fn type_name(&self) -> &str {
