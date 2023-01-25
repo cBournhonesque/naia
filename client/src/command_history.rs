@@ -15,15 +15,15 @@ impl<T: Clone> Default for CommandHistory<T> {
 }
 
 impl<T: Clone> CommandHistory<T> {
-    pub fn replays(&mut self, start_tick: &Tick) -> Vec<(Tick, T)> {
+    pub fn replays(&mut self, start_tick: &Tick) -> VecDeque<(Tick, T)> {
         // Remove history of commands until current received tick
         self.remove_to_and_including(*start_tick);
 
         // Get copies of all remaining stored Commands
-        let mut output = Vec::new();
+        let mut output = VecDeque::new();
 
         for (tick, command) in self.buffer.iter() {
-            output.push((*tick, command.clone()));
+            output.push_back((*tick, command.clone()));
         }
 
         output
