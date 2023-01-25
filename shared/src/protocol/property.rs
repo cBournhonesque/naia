@@ -10,6 +10,7 @@ use crate::protocol::replicable_property::ReplicableProperty;
 
 /// A Property of an Component/Message, that contains data
 /// which must be tracked for updates
+// #[cfg_attr(feature = "bevy_support", derive(Reflect))]
 #[derive(Clone)]
 pub struct Property<T: Serde> {
     inner: T,
@@ -116,6 +117,7 @@ where T: Default {
     }
 }
 
+
 cfg_if! {
     if #[cfg(feature = "bevy_support")]
     {
@@ -123,84 +125,261 @@ cfg_if! {
         use bevy_reflect::{FromReflect, Reflect, ReflectMut, ReflectOwned, ReflectRef, TypeInfo};
         use bevy_reflect::{GetTypeRegistration, TypeRegistration};
 
-        impl<T: Serde> GetTypeRegistration for Property<T> where T: GetTypeRegistration {
-            fn get_type_registration() -> TypeRegistration {
-                T::get_type_registration()
+        #[allow(unused_mut)]
+        impl<T: Serde + Reflect> bevy_reflect::GetTypeRegistration for Property<T> {
+            fn get_type_registration() -> bevy_reflect::TypeRegistration {
+                let mut registration = bevy_reflect::TypeRegistration::of::<Property<T>>();
+                registration
+                    .insert::<
+                        bevy_reflect::ReflectFromPtr,
+                    >(bevy_reflect::FromType::<Property<T>>::from_type());
+                let ignored_indices = [].into_iter();
+                registration
+                    .insert::<
+                        bevy_reflect::serde::SerializationData,
+                    >(bevy_reflect::serde::SerializationData::new(ignored_indices));
+                registration
             }
         }
-
-        impl<T: Serde> Reflect for Property<T> where T: Reflect {
-            fn type_name(&self) -> &str {
-                self.inner.type_name()
-            }
-
-            fn get_type_info(&self) -> &'static TypeInfo {
-                self.inner.get_type_info()
-            }
-
-            fn into_any(self: Box<Self>) -> Box<dyn Any> {
-                Box::new(self.inner).into_any()
-            }
-
-            fn as_any(&self) -> &dyn Any {
-                self.inner.as_any()
-            }
-
-            fn as_any_mut(&mut self) -> &mut dyn Any {
-                self.inner.as_any_mut()
-            }
-
-            fn into_reflect(self: Box<Self>) -> Box<dyn Reflect> {
-                Box::new(self.inner).into_reflect()
-            }
-
-            fn as_reflect(&self) -> &dyn Reflect {
-                self.inner.as_reflect()
-            }
-
-            fn as_reflect_mut(&mut self) -> &mut dyn Reflect {
-                self.inner.as_reflect_mut()
-            }
-
-            fn apply(&mut self, value: &dyn Reflect) {
-                self.inner.apply(value)
-            }
-
-            fn set(&mut self, value: Box<dyn Reflect>) -> Result<(), Box<dyn Reflect>> {
-                self.inner.set(value)
-            }
-
-            fn reflect_ref(&self) -> ReflectRef {
-                self.inner.reflect_ref()
-            }
-
-            fn reflect_mut(&mut self) -> ReflectMut {
-                self.inner.reflect_mut()
-            }
-
-            fn reflect_owned(self: Box<Self>) -> ReflectOwned {
-                Box::new(self.inner).reflect_owned()
-            }
-
-            fn clone_value(&self) -> Box<dyn Reflect> {
-                self.inner.clone_value()
+        impl<T: Serde + Reflect> bevy_reflect::Typed for Property<T> {
+            fn type_info() -> &'static bevy_reflect::TypeInfo {
+                static CELL: bevy_reflect::utility::GenericTypeInfoCell = bevy_reflect::utility::GenericTypeInfoCell::new();
+                CELL.get_or_insert::<
+                        Self,
+                        _,
+                    >(|| {
+                    let fields = [
+                        bevy_reflect::NamedField::new::<T>("inner"),
+                        bevy_reflect::NamedField::new::<Option<PropertyMutator>>("mutator"),
+                        bevy_reflect::NamedField::new::<u8>("mutator_index"),
+                    ];
+                    let info = bevy_reflect::StructInfo::new::<Self>("Property", &fields);
+                    bevy_reflect::TypeInfo::Struct(info)
+                })
             }
         }
-
-        impl<T: Serde> FromReflect for Property<T> where T: FromReflect {
-
-            fn from_reflect(reflect: &dyn Reflect) -> Option<Self> {
-                match T::from_reflect(reflect) {
-                    None => None,
-                    Some(inner) => Some(Self::new(inner, 0))
+        impl<T: Serde + Reflect> bevy_reflect::Struct for Property<T> {
+            fn field(&self, name: &str) -> Option<&dyn bevy_reflect::Reflect> {
+                match name {
+                    "inner" => Some(&self.inner),
+                    "mutator" => Some(&self.mutator),
+                    "mutator_index" => Some(&self.mutator_index),
+                    _ => None,
                 }
             }
-
+            fn field_mut(&mut self, name: &str) -> Option<&mut dyn bevy_reflect::Reflect> {
+                match name {
+                    "inner" => Some(&mut self.inner),
+                    "mutator" => Some(&mut self.mutator),
+                    "mutator_index" => Some(&mut self.mutator_index),
+                    _ => None,
+                }
+            }
+            fn field_at(&self, index: usize) -> Option<&dyn bevy_reflect::Reflect> {
+                match index {
+                    0usize => Some(&self.inner),
+                    1usize => Some(&self.mutator),
+                    2usize => Some(&self.mutator_index),
+                    _ => None,
+                }
+            }
+            fn field_at_mut(
+                &mut self,
+                index: usize,
+            ) -> Option<&mut dyn bevy_reflect::Reflect> {
+                match index {
+                    0usize => Some(&mut self.inner),
+                    1usize => Some(&mut self.mutator),
+                    2usize => Some(&mut self.mutator_index),
+                    _ => None,
+                }
+            }
+            fn name_at(&self, index: usize) -> Option<&str> {
+                match index {
+                    0usize => Some("inner"),
+                    1usize => Some("mutator"),
+                    2usize => Some("mutator_index"),
+                    _ => None,
+                }
+            }
+            fn field_len(&self) -> usize {
+                3usize
+            }
+            fn iter_fields(&self) -> bevy_reflect::FieldIter {
+                bevy_reflect::FieldIter::new(self)
+            }
+            fn clone_dynamic(&self) -> bevy_reflect::DynamicStruct {
+                let mut dynamic = bevy_reflect::DynamicStruct::default();
+                dynamic.set_name(self.type_name().to_string());
+                dynamic.insert_boxed("inner", self.inner.clone_value());
+                dynamic.insert_boxed("mutator", self.mutator.clone_value());
+                dynamic.insert_boxed("mutator_index", self.mutator_index.clone_value());
+                dynamic
+            }
+        }
+        impl<T: Serde + Reflect> bevy_reflect::Reflect for Property<T> {
+            #[inline]
+            fn type_name(&self) -> &str {
+                std::any::type_name::<Self>()
+            }
+            #[inline]
+            fn get_type_info(&self) -> &'static bevy_reflect::TypeInfo {
+                <Self as bevy_reflect::Typed>::type_info()
+            }
+            #[inline]
+            fn into_any(self: Box<Self>) -> Box<dyn std::any::Any> {
+                self
+            }
+            #[inline]
+            fn as_any(&self) -> &dyn std::any::Any {
+                self
+            }
+            #[inline]
+            fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
+                self
+            }
+            #[inline]
+            fn into_reflect(self: Box<Self>) -> Box<dyn bevy_reflect::Reflect> {
+                self
+            }
+            #[inline]
+            fn as_reflect(&self) -> &dyn bevy_reflect::Reflect {
+                self
+            }
+            #[inline]
+            fn as_reflect_mut(&mut self) -> &mut dyn bevy_reflect::Reflect {
+                self
+            }
+            #[inline]
+            fn clone_value(&self) -> Box<dyn bevy_reflect::Reflect> {
+                Box::new(bevy_reflect::Struct::clone_dynamic(self))
+            }
+            #[inline]
+            fn set(
+                &mut self,
+                value: Box<dyn bevy_reflect::Reflect>,
+            ) -> Result<(), Box<dyn bevy_reflect::Reflect>> {
+                *self = value.take()?;
+                Ok(())
+            }
+            #[inline]
+            fn apply(&mut self, value: &dyn bevy_reflect::Reflect) {
+                if let bevy_reflect::ReflectRef::Struct(struct_value) = value.reflect_ref() {
+                    for (i, value) in struct_value.iter_fields().enumerate() {
+                        let name = struct_value.name_at(i).unwrap();
+                        bevy_reflect::Struct::field_mut(self, name).map(|v| v.apply(value));
+                    }
+                } else {
+                    ::core::panicking::panic_fmt(
+                        ::core::fmt::Arguments::new_v1(
+                            &["Attempted to apply non-struct type to struct type."],
+                            &[],
+                        ),
+                    );
+                }
+            }
+            fn reflect_ref(&self) -> bevy_reflect::ReflectRef {
+                bevy_reflect::ReflectRef::Struct(self)
+            }
+            fn reflect_mut(&mut self) -> bevy_reflect::ReflectMut {
+                bevy_reflect::ReflectMut::Struct(self)
+            }
+            fn reflect_owned(self: Box<Self>) -> bevy_reflect::ReflectOwned {
+                bevy_reflect::ReflectOwned::Struct(self)
+            }
+            fn reflect_partial_eq(&self, value: &dyn bevy_reflect::Reflect) -> Option<bool> {
+                bevy_reflect::struct_partial_eq(self, value)
+            }
         }
 
     }
-
 }
+
+// cfg_if! {
+//     if #[cfg(feature = "bevy_support")]
+//     {
+//         use std::any::Any;
+//         use bevy_reflect::{FromReflect, Reflect, ReflectMut, ReflectOwned, ReflectRef, TypeInfo};
+//         use bevy_reflect::{GetTypeRegistration, TypeRegistration};
+//
+//         impl<T: Serde> GetTypeRegistration for Property<T> where T: GetTypeRegistration {
+//             fn get_type_registration() -> TypeRegistration {
+//                 T::get_type_registration()
+//             }
+//         }
+//
+//         impl<T: Serde> Reflect for Property<T> where T: Reflect {
+//             fn type_name(&self) -> &str {
+//                 self.inner.type_name()
+//             }
+//
+//             fn get_type_info(&self) -> &'static TypeInfo {
+//                 self.inner.get_type_info()
+//             }
+//
+//             fn into_any(self: Box<Self>) -> Box<dyn Any> {
+//                 Box::new(self.inner).into_any()
+//             }
+//
+//             fn as_any(&self) -> &dyn Any {
+//                 self.inner.as_any()
+//             }
+//
+//             fn as_any_mut(&mut self) -> &mut dyn Any {
+//                 self.inner.as_any_mut()
+//             }
+//
+//             fn into_reflect(self: Box<Self>) -> Box<dyn Reflect> {
+//                 Box::new(self.inner).into_reflect()
+//             }
+//
+//             fn as_reflect(&self) -> &dyn Reflect {
+//                 self.inner.as_reflect()
+//             }
+//
+//             fn as_reflect_mut(&mut self) -> &mut dyn Reflect {
+//                 self.inner.as_reflect_mut()
+//             }
+//
+//             fn apply(&mut self, value: &dyn Reflect) {
+//                 self.inner.apply(value)
+//             }
+//
+//             fn set(&mut self, value: Box<dyn Reflect>) -> Result<(), Box<dyn Reflect>> {
+//                 self.inner.set(value)
+//             }
+//
+//             fn reflect_ref(&self) -> ReflectRef {
+//                 self.inner.reflect_ref()
+//             }
+//
+//             fn reflect_mut(&mut self) -> ReflectMut {
+//                 self.inner.reflect_mut()
+//             }
+//
+//             fn reflect_owned(self: Box<Self>) -> ReflectOwned {
+//                 Box::new(self.inner).reflect_owned()
+//             }
+//
+//             fn clone_value(&self) -> Box<dyn Reflect> {
+//                 self.inner.clone_value()
+//             }
+//         }
+//
+//         impl<T: Serde> FromReflect for Property<T> where T: FromReflect {
+//
+//             fn from_reflect(reflect: &dyn Reflect) -> Option<Self> {
+//                 match T::from_reflect(reflect) {
+//                     None => None,
+//                     Some(inner) => Some(Self::new(inner, 0))
+//                 }
+//             }
+//
+//         }
+//
+//     }
+//
+// }
 
 
 impl<T: Serde> Property<T> {
