@@ -4,18 +4,34 @@ use std::ops::{Deref, DerefMut, Add, AddAssign, Mul, MulAssign, Sub};
 
 use ::serde::{Serialize, Deserialize, Serializer, Deserializer};
 use naia_serde::{BitReader, BitWrite, BitWriter, Serde, SerdeErr};
+use crate::derive_serde;
 
 use crate::protocol::property_mutate::PropertyMutator;
 use crate::protocol::replicable_property::ReplicableProperty;
 
 /// A Property of an Component/Message, that contains data
 /// which must be tracked for updates
+// Once bevy 0.10 is merged, can just do this:
 // #[cfg_attr(feature = "bevy_support", derive(Reflect), derive(FromReflect))]
 #[derive(Clone)]
 pub struct Property<T: Serde> {
     inner: T,
     mutator: Option<PropertyMutator>,
     mutator_index: u8,
+}
+
+impl<T: Serde> Serde for Property<T> {
+    fn ser(&self, writer: &mut dyn BitWrite) {
+        self.inner.ser(writer);
+    }
+
+    fn de(reader: &mut BitReader) -> Result<Self, SerdeErr> {
+        Ok(Self {
+            inner: Serde::de(reader)?,
+            mutator: None,
+            mutator_index: 0,
+        })
+    }
 }
 
 impl<T: Serde> PartialEq for Property<T> where T: PartialEq {

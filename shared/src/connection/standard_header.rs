@@ -3,7 +3,7 @@ use naia_serde::derive_serde;
 use crate::{connection::packet_type::PacketType, serde, types::PacketIndex};
 
 // This header provides reliability information.
-#[derive(Copy, Debug)]
+#[derive(Copy, Debug, PartialEq, Clone)]
 #[derive_serde]
 pub struct StandardHeader {
     pub packet_type: PacketType,

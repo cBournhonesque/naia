@@ -20,7 +20,7 @@ impl<T: Eq + Copy + Hash + Debug> ExternalEntity for T {}
 use bevy_reflect::Reflect;
 use crate::protocol::replicable_property::{ReplicableEntityProperty, ReplicableProperty};
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "bevy_support", derive(Reflect))]
 pub struct EntityProperty {
     // note: the Option<> is there just because we initialize the value as None.

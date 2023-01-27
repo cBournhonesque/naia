@@ -2,7 +2,7 @@ use crate::{derive_serde, serde};
 
 // Enum used as a shared network protocol, representing various message types
 // related to Entities/Components
-#[derive(Copy)]
+#[derive(Copy, PartialEq, Clone)]
 #[derive_serde]
 pub enum EntityActionType {
     // Action indicating an Entity to be created

@@ -29,7 +29,6 @@ pub fn derive_serde(
     // if clippy is bugging you about it, tell clippy this one is okay
     format!(
         "
-        #[derive(PartialEq, Clone)]
         {define_string}
         {impl_string}
         "

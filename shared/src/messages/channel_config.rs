@@ -146,7 +146,7 @@ mod define_default_channels {
     use super::ChannelIndex;
     use crate::{derive_serde, serde};
 
-    #[derive(Eq, Hash)]
+    #[derive(Eq, Hash, PartialEq, Clone)]
     #[derive_serde]
     pub enum DefaultChannels {
         UnorderedUnreliable,
