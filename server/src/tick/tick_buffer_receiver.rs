@@ -27,6 +27,7 @@ impl<P: Protocolize, C: ChannelIndex> TickBufferReceiver<P, C> {
 
     // Incoming Messages
 
+    /// Read incoming packet data and store in a buffer
     pub fn read_messages(
         &mut self,
         host_tick: &Tick,
@@ -50,6 +51,7 @@ impl<P: Protocolize, C: ChannelIndex> TickBufferReceiver<P, C> {
         Ok(())
     }
 
+    /// Retrieved stored data from the tick buffer for the given [`Tick`]
     pub fn receive_messages(&mut self, host_tick: &Tick) -> Vec<(C, P)> {
         debug_span!("tick_buffered", "server_tick" = host_tick);
         let mut output = Vec::new();

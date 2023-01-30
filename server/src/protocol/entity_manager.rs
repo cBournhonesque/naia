@@ -33,7 +33,9 @@ pub struct EntityManager<P: Protocolize, E: ExternalEntity + Send + Sync, C: Cha
     // Updates
     next_send_updates: HashMap<E, HashSet<P::Kind>>,
     #[allow(clippy::type_complexity)]
+    /// Map of component updates and [`DiffMask`] that were written into each packet
     sent_updates: HashMap<PacketIndex, (Instant, HashMap<(E, P::Kind), DiffMask>)>,
+    /// Last [`PacketIndex`] where a component update was written by the server
     last_update_packet_index: PacketIndex,
 }
 
@@ -574,6 +576,10 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> EntityMan
         }
     }
 
+    /// For a given entity, write component value updates into a packet
+    /// Only component values that changed in the internal (naia's) host world will be written
+    ///
+    /// TODO: why do we have `is_writing`?
     fn write_update<W: WorldRefType<P, E>>(
         &mut self,
         world: &W,

@@ -6,7 +6,9 @@ use naia_shared::{BigMap, EntityHandle, EntityHandleConverter, ProtocolKindType,
 use crate::{protocol::global_entity_record::GlobalEntityRecord, room::RoomKey};
 
 pub struct WorldRecord<E: ExternalEntity, K: ProtocolKindType> {
+    /// Information about entities in the internal ECS World
     entity_records: HashMap<E, GlobalEntityRecord<K>>,
+    /// Map from the internal [`EntityHandle`] to the external (e.g. Bevy's) entity id
     handle_entity_map: BigMap<EntityHandle, E>,
 }
 

@@ -65,12 +65,13 @@ pub struct Server<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelInd
     user_connections: HashMap<SocketAddr, Connection<P, E, C>>,
     // Rooms
     rooms: BigMap<RoomKey, Room<E>>,
-    // Entitietack_substitute_newer_paste
+    // Entities
     world_record: WorldRecord<E, P::Kind>,
     entity_scope_map: EntityScopeMap<E>,
     // Components
     diff_handler: Arc<RwLock<GlobalDiffHandler<E, P::Kind>>>,
     // Events
+    /// Contains all the messages received fom
     incoming_events: VecDeque<Result<Event<P, C>, NaiaServerError>>,
     // Ticks
     tick_manager: Option<TickManager>,
@@ -161,7 +162,7 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> Server<P,
             }
         }
 
-        // receive tick buffered messages on tick
+        // receive (retrieve from buffer) tick buffered messages for the current server tick
         if did_tick {
             // Receive Tick Buffered Messages
             for user_address in &user_addresses {
@@ -182,6 +183,7 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> Server<P,
             self.incoming_events.push_back(Ok(Event::Tick));
         }
 
+        // return all received messages and reset the buffer
         std::mem::take(&mut self.incoming_events)
     }
 
@@ -819,6 +821,7 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> Server<P,
 
     // Private methods
 
+    /// Maintain connection with a client and read all incoming packet data
     fn maintain_socket(&mut self) {
         // disconnects
         if self.timeout_timer.ringing() {
@@ -1080,6 +1083,8 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> Server<P,
                                     ////
                                 }
 
+                                // TODO: send a message to client with a recommendation on how
+                                //  to speedup/slowdown simulation?
                                 user_connection.ping_manager.process_pong(&mut reader);
                             }
                             _ => {}

@@ -16,11 +16,13 @@ pub trait ChannelSender<P>: Send + Sync {
 }
 
 pub trait ChannelReceiver<P>: Send + Sync {
+    /// Read message data from an incoming packet
     fn read_messages(
         &mut self,
         channel_reader: &dyn ChannelReader<P>,
         reader: &mut BitReader,
     ) -> Result<(), SerdeErr>;
+    /// Retrieve messages from the buffer
     fn receive_messages(&mut self) -> Vec<P>;
 }
 
