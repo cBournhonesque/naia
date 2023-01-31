@@ -113,7 +113,8 @@ impl<'world, 'state, P: Protocolize, C: ChannelIndex> Server<'world, 'state, P, 
 
     /// Returns true if the server's [`WorldProxy`] has the entity
     pub fn has_entity(&self, entity: &Entity) -> bool {
-        self.world.proxy().has_entity(entity)
+        <WorldRef<'_> as WorldRefType<P, Entity>>::has_entity(&self.world.proxy(), entity)
+        // self.world.proxy().has_entity(entity)
     }
 
     pub fn entity(&self, entity: &Entity) -> EntityRef<P, Entity, WorldRef> {
