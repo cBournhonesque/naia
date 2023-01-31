@@ -14,3 +14,4 @@ pub use client::Client;
 pub use commands::CommandsExt;
 pub use plugin::Plugin;
 pub use stage::Stage;
+pub use systems::should_tick;

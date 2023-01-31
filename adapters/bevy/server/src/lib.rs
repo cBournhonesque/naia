@@ -14,3 +14,4 @@ mod systems;
 pub use plugin::Plugin;
 pub use server::Server;
 pub use stage::Stage;
+pub use systems::should_tick;
