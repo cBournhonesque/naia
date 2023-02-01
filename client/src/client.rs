@@ -35,12 +35,12 @@ pub struct Client<P: Protocolize, E: ExternalEntity, C: ChannelIndex> {
     shared_config: SharedConfig<C>,
     // Connection
     io: Io,
-    server_connection: Option<Connection<P, E, C>>,
+    pub server_connection: Option<Connection<P, E, C>>,
     handshake_manager: HandshakeManager<P>,
     // Events
     incoming_events: VecDeque<Result<Event<P, E, C>, NaiaClientError>>,
     // Ticks
-    tick_manager: Option<TickManager>,
+    pub tick_manager: Option<TickManager>,
     // Phantom
     phantom_k: PhantomData<E>,
 }

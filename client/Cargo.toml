@@ -22,6 +22,7 @@ mquad = [ "naia-client-socket/mquad", "naia-shared/mquad" ]
 bevy_support = ["naia-shared/bevy_support", "bevy_ecs"]
 zstd_support = ["naia-shared/zstd_support"]
 debug = []
+reflect = ["dep:bevy_reflect"]
 bincode = ["naia-shared/bincode"]
 
 [dependencies]
@@ -30,4 +31,5 @@ naia-shared = { version = "0.14", path = "../shared" }
 cfg-if = { version = "1.0" }
 log = { version = "0.4" }
 bevy_ecs = { version = "0.9", default_features = false, optional = true }
+bevy_reflect = { version = "0.9", optional = true}
 tracing = { version = "0.1" }

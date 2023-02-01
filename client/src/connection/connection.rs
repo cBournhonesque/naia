@@ -19,7 +19,7 @@ pub struct Connection<P: Protocolize, E: ExternalEntity, C: ChannelIndex> {
     pub entity_manager: EntityManager<P, E>,
     pub ping_manager: PingManager,
     pub tick_buffer: Option<TickBufferSender<P, C>>,
-    jitter_buffer: TickQueue<OwnedBitReader>,
+    pub jitter_buffer: TickQueue<OwnedBitReader>,
 }
 
 impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Connection<P, E, C> {

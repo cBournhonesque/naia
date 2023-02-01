@@ -22,7 +22,7 @@ use super::state::State;
 
 pub struct Client<'a, P: Protocolize, C: ChannelIndex> {
     world: &'a World,
-    client: Mut<'a, NaiaClient<P, Entity, C>>,
+    pub client: Mut<'a, NaiaClient<P, Entity, C>>,
     phantom_p: PhantomData<P>,
 }
 

@@ -4,7 +4,11 @@ use naia_shared::{serde::Serde, wrapping_diff, Instant, Tick};
 
 use crate::client::{BitReader, BitWriter};
 
+#[cfg(feature = "reflect")]
+use bevy_reflect::prelude::*;
+
 /// Manages the current tick for the host
+#[cfg_attr(feature = "reflect", derive(Reflect), derive(Clone))]
 pub struct TickManager {
     /// How much time in milliseconds does a tick last
     tick_interval_millis: f32,
@@ -21,6 +25,7 @@ pub struct TickManager {
     client_sending_tick_adjust: f32,
     server_receivable_tick_adjust: f32,
     client_receiving_tick_adjust: f32,
+    #[reflect(ignore)]
     last_tick_instant: Instant,
     interpolation: f32,
     accumulator: f32,
