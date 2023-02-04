@@ -149,7 +149,8 @@ impl TickManager {
         // Calculate incoming & outgoing jitter buffer tick offsets
 
         let jitter_limit = jitter_average * 4.0;
-        self.client_receiving_tick_adjust = jitter_limit / self.tick_interval_millis;
+        // self.client_receiving_tick_adjust = jitter_limit / self.tick_interval_millis;
+        self.client_receiving_tick_adjust = 1.0;
 
         // NOTE: I've struggled multiple times with why rtt_average instead of
         // ping_average exists in this calculation, figured it out, then
