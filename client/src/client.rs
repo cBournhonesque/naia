@@ -52,7 +52,10 @@ impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Client<P, E, C> {
 
         let tick_manager = shared_config
             .tick_interval
-            .map(|duration| TickManager::new(duration, client_config.minimum_latency));
+            .map(|duration| TickManager::new(
+                duration,
+                client_config.tick_manager_config.expect("Need to provide a TickManagerConfig")
+            ));
 
         Client {
             // Config
@@ -494,7 +497,7 @@ impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Client<P, E, C> {
             if let Some(duration) = self.shared_config.tick_interval {
                 Some(TickManager::new(
                     duration,
-                    self.client_config.minimum_latency,
+                    self.client_config.tick_manager_config.expect("Need to provide a tick manager config"),
                 ))
             } else {
                 None
