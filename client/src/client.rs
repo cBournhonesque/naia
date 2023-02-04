@@ -270,6 +270,14 @@ impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Client<P, E, C> {
             .map(|tick_manager| tick_manager.client_internal_tick())
     }
 
+    /// Gets the current receiving tick of the Client (accounting for the jitter buffer)
+    pub fn client_receiving_tick(&self) -> Option<Tick> {
+        return self
+            .tick_manager
+            .as_ref()
+            .map(|tick_manager| tick_manager.client_receiving_tick())
+    }
+
     // Interpolation
 
     /// Gets the interpolation tween amount for the current frame

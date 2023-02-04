@@ -107,6 +107,10 @@ impl<'a, P: Protocolize, C: ChannelIndex> Client<'a, P, C> {
     pub fn client_internal_tick(&self) -> Option<u16> {
         self.client.client_internal_tick()
     }
+
+    pub fn client_receiving_tick(&self) -> Option<u16> {
+        self.client.client_receiving_tick()
+    }
 }
 
 impl<'a, P: Protocolize, C: ChannelIndex> SystemParam for Client<'a, P, C> {
