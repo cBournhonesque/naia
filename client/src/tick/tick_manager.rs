@@ -129,10 +129,10 @@ impl TickManager {
 
             self.ticks_recorded += 1;
         } else {
-            self.tick_offset_avg = (0.9 * self.tick_offset_avg) + (0.1 * (tick_offset as f32));
+            self.tick_offset_avg = (0.90 * self.tick_offset_avg) + (0.10 * (tick_offset as f32));
             let tick_offset_speed = (tick_offset - self.last_tick_offset) as f32;
             self.tick_offset_speed_avg =
-                (0.9 * self.tick_offset_speed_avg) + (0.1 * tick_offset_speed);
+                (0.90 * self.tick_offset_speed_avg) + (0.10 * tick_offset_speed);
         }
 
         self.last_tick_offset = tick_offset;
