@@ -4,6 +4,7 @@ use naia_server::{
     shared::{ChannelIndex, Protocolize, Replicate, ReplicateSafe},
     RoomKey,
 };
+use crate::commands::UnsyncEntity;
 
 use super::{
     commands::{DespawnEntity, InsertComponent, RemoveComponent},
@@ -25,6 +26,11 @@ impl<'s, 'world, 'state, P: Protocolize, C: ChannelIndex> EntityMut<'s, 'world, 
     #[inline]
     pub fn id(&self) -> Entity {
         self.entity
+    }
+
+    /// Stop replicating the entity and remove it from the server's WorldProxy
+    pub fn unsync(&mut self) {
+        self.server.queue_command(UnsyncEntity::new(&self.entity))
     }
 
     // Despawn

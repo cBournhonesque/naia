@@ -64,8 +64,8 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> EntityMan
         self.world_channel.host_spawn_entity(entity);
     }
 
-    pub fn despawn_entity(&mut self, entity: &E) {
-        self.world_channel.host_despawn_entity(entity);
+    pub fn despawn_entity(&mut self, entity: &E, client_despawn: bool) {
+        self.world_channel.host_despawn_entity(entity, client_despawn);
     }
 
     pub fn insert_component(&mut self, entity: &E, component: &P::Kind) {

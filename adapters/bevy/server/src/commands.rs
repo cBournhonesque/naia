@@ -15,6 +15,25 @@ pub trait Command<P: Protocolize, C: ChannelIndex>: Send + Sync + 'static {
     fn write(self: Box<Self>, server: &mut Server<P, Entity, C>, world: WorldMut);
 }
 
+//// Unsync Entity ////
+
+pub(crate) struct UnsyncEntity {
+    entity: Entity,
+}
+
+impl UnsyncEntity {
+    pub fn new(entity: &Entity) -> Self {
+        UnsyncEntity { entity: *entity }
+    }
+}
+
+impl<P: Protocolize, C: ChannelIndex> Command<P, C> for UnsyncEntity {
+    fn write(self: Box<Self>, server: &mut Server<P, Entity, C>, world: WorldMut) {
+        server.entity_mut(world, &self.entity).unsync();
+    }
+}
+
+
 //// Despawn Entity ////
 
 pub(crate) struct DespawnEntity {

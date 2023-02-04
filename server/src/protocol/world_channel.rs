@@ -112,7 +112,9 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> WorldChan
         }
     }
 
-    pub fn host_despawn_entity(&mut self, entity: &E) {
+    /// Despawn an entity on the server world.
+    /// If `client_despawn` is true, also despawn it in the client world
+    pub fn host_despawn_entity(&mut self, entity: &E, client_despawn: bool) {
         if !self.host_world.contains_key(entity) {
             // do nothing
             return;
@@ -135,10 +137,12 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> WorldChan
 
         if despawn {
             self.entity_channels.remove(entity);
-            self.entity_channels
-                .insert(*entity, EntityChannel::Despawning);
-            self.outgoing_actions
-                .send_message(EntityActionEvent::DespawnEntity(*entity));
+            if client_despawn {
+                self.entity_channels
+                    .insert(*entity, EntityChannel::Despawning);
+                self.outgoing_actions
+                    .send_message(EntityActionEvent::DespawnEntity(*entity));
+            }
             self.on_entity_channel_closing(entity);
 
             for component in removing_components {

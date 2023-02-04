@@ -74,6 +74,10 @@ impl<
         self.entity
     }
 
+    pub fn unsync(&mut self) {
+        self.server.unsync_entity(&mut self.world, &self.entity);
+    }
+
     pub fn despawn(&mut self) {
         self.server.despawn_entity(&mut self.world, &self.entity);
     }

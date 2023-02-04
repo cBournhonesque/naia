@@ -559,6 +559,38 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> Server<P,
 
     //// Entities
 
+    /// Despawns the Entity in the server World, if it exists.
+    /// Does NOT despawn the entity in the client World, but simply stops replicating.
+    /// This will also remove all of the Entity’s Components.
+    /// Returns true if the Entity is successfully despawned and false if the
+    /// Entity does not exist.
+    pub(crate) fn unsync_entity<W: WorldMutType<P, E>>(&mut self, world: &mut W, entity: &E) {
+        if !world.has_entity(entity) {
+            panic!("attempted to de-spawn nonexistent entity");
+        }
+
+        // TODO: we can make this more efficient in the future by caching which Entities
+        // are in each User's scope
+        for (_, user_connection) in self.user_connections.iter_mut() {
+            // remove entity from user connection
+            user_connection.entity_manager.despawn_entity(entity, false);
+        }
+
+        // Clean up associated components
+        for component_kind in self.world_record.component_kinds(entity).unwrap() {
+            self.component_cleanup(entity, &component_kind);
+        }
+
+        // Delete from world
+        world.despawn_entity(entity);
+
+        // Delete scope
+        self.entity_scope_map.remove_entity(entity);
+
+        // Remove from ECS Record
+        self.world_record.despawn_entity(entity);
+    }
+
     /// Despawns the Entity, if it exists.
     /// This will also remove all of the Entity’s Components.
     /// Returns true if the Entity is successfully despawned and false if the
@@ -571,8 +603,8 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> Server<P,
         // TODO: we can make this more efficient in the future by caching which Entities
         // are in each User's scope
         for (_, user_connection) in self.user_connections.iter_mut() {
-            //remove entity from user connection
-            user_connection.entity_manager.despawn_entity(entity);
+            // remove entity from user connection
+            user_connection.entity_manager.despawn_entity(entity, true);
         }
 
         // Clean up associated components
@@ -1126,7 +1158,7 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> Server<P,
                         //remove entity from user connection
                         user_connection
                             .entity_manager
-                            .despawn_entity(&removed_entity);
+                            .despawn_entity(&removed_entity, true);
                     }
                 }
             }
@@ -1166,7 +1198,7 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> Server<P,
                                     }
                                 } else if currently_in_scope {
                                     // remove entity from the connections local scope
-                                    user_connection.entity_manager.despawn_entity(entity);
+                                    user_connection.entity_manager.despawn_entity(entity, true);
                                 }
                             }
                         }
