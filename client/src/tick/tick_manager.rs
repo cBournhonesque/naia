@@ -168,6 +168,11 @@ impl TickManager {
             server_receivable_adjust_millis / self.tick_interval_millis;
     }
 
+    /// Gets the internal client tick
+    pub fn client_internal_tick(&self) -> Tick {
+        self.internal_tick
+    }
+
     /// Gets the tick at which the Client is sending updates
     pub fn client_sending_tick(&self) -> Tick {
         let mut output = self.server_tick_estimate() + self.client_sending_tick_adjust;
@@ -189,6 +194,7 @@ impl TickManager {
         wrap_f32(&mut output);
         output.round() as Tick
     }
+
 
     fn server_tick_estimate(&self) -> f32 {
         (self.internal_tick as f32) + self.tick_offset_avg

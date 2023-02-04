@@ -254,12 +254,20 @@ impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Client<P, E, C> {
 
     // Ticks
 
-    /// Gets the current tick of the Client
+    /// Gets the current sending tick of the Client
     pub fn client_tick(&self) -> Option<Tick> {
         return self
             .tick_manager
             .as_ref()
             .map(|tick_manager| tick_manager.client_sending_tick());
+    }
+
+    /// Gets the current internal tick of the Client
+    pub fn client_internal_tick(&self) -> Option<Tick> {
+        return self
+            .tick_manager
+            .as_ref()
+            .map(|tick_manager| tick_manager.client_internal_tick())
     }
 
     // Interpolation
