@@ -137,12 +137,12 @@ impl TickManager {
 
         self.last_tick_offset = tick_offset;
 
-        if self.tick_offset_speed_avg > 1.0 {
-            self.tick_speed_factor -= 0.1;
+        if self.tick_offset_speed_avg > 0.1 {
+            self.tick_speed_factor -= 0.01;
             self.tick_offset_speed_avg = 0.0;
         }
-        if self.tick_offset_speed_avg < -1.0 {
-            self.tick_speed_factor += 0.1;
+        if self.tick_offset_speed_avg < -0.1 {
+            self.tick_speed_factor += 0.01;
             self.tick_offset_speed_avg = 0.0;
         }
 
