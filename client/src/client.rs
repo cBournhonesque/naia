@@ -147,15 +147,15 @@ impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Client<P, E, C> {
             if let Some(tick_manager) = &mut self.tick_manager {
                 if tick_manager.recv_client_tick() {
                     did_tick = true;
-
-                    // apply updates on tick boundary
-                    let receiving_tick = tick_manager.client_receiving_tick();
-                    server_connection.process_buffered_packets(
-                        &mut world,
-                        receiving_tick,
-                        &mut self.incoming_events,
-                    );
                 }
+
+                // apply updates on tick boundary
+                let receiving_tick = tick_manager.client_receiving_tick();
+                server_connection.process_buffered_packets(
+                    &mut world,
+                    receiving_tick,
+                    &mut self.incoming_events,
+                );
             } else {
                 server_connection.process_buffered_packets(
                     &mut world,
