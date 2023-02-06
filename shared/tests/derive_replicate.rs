@@ -15,7 +15,7 @@ mod some_protocol {
 }
 
 mod some_unit_replica {
-    use naia_shared::{Replicate};
+    use naia_shared::Replicate;
 
     #[derive(Replicate)]
     #[protocol_path = "super::some_protocol::SomeProtocol"]
@@ -41,7 +41,8 @@ mod some_named_replica {
 
     impl NamedStringHolder {
         pub fn new(string_1: &str, string_2: &str, extra_string: &str) -> Self {
-            let mut res =  NamedStringHolder::new_complete(string_1.to_string(), string_2.to_string());
+            let mut res =
+                NamedStringHolder::new_complete(string_1.to_string(), string_2.to_string());
             res.extra_string = extra_string.to_string();
             res
         }
@@ -57,7 +58,8 @@ mod some_tuple_replica {
 
     impl TupleStringHolder {
         pub fn new(string_1: &str, string_2: &str, extra_string: &str) -> Self {
-            let mut res =  TupleStringHolder::new_complete(string_1.to_string(), string_2.to_string());
+            let mut res =
+                TupleStringHolder::new_complete(string_1.to_string(), string_2.to_string());
             res.2 = extra_string.to_string();
             res
         }
@@ -69,7 +71,7 @@ mod some_entity_replica {
 
     #[derive(Replicate)]
     #[protocol_path = "super::some_protocol::SomeProtocol"]
-    pub struct EntityPropertyHolder{
+    pub struct EntityPropertyHolder {
         pub entity_1: EntityProperty,
         pub vec_entity_1: VecDequeEntityProperty,
     }
@@ -81,13 +83,17 @@ mod some_entity_replica {
     }
 }
 
+use naia_shared::{
+    serde::{BitReader, BitWriter},
+    BigMapKey, EntityHandle, EntityHandleConverter, FakeEntityConverter, NetEntity,
+    NetEntityHandleConverter, Protocolize, ReplicableEntityProperty, ReplicableProperty,
+    ReplicateSafe,
+};
 use std::collections::VecDeque;
-use naia_shared::{serde::{BitReader, BitWriter}, FakeEntityConverter, Protocolize, EntityHandleConverter, EntityHandle, BigMapKey, ReplicableEntityProperty, ReplicableProperty, NetEntityHandleConverter, NetEntity, ReplicateSafe};
 
-
-use some_protocol::SomeProtocol;
 use some_entity_replica::EntityPropertyHolder;
 use some_named_replica::NamedStringHolder;
+use some_protocol::SomeProtocol;
 use some_tuple_replica::TupleStringHolder;
 use some_unit_replica::UnitHolder;
 
@@ -96,8 +102,11 @@ fn read_write_named_replica() {
     // Write
     let mut writer = BitWriter::new();
 
-    let in_1 =
-        SomeProtocol::NamedStringHolder(NamedStringHolder::new("hello world", "goodbye world", "extra"));
+    let in_1 = SomeProtocol::NamedStringHolder(NamedStringHolder::new(
+        "hello world",
+        "goodbye world",
+        "extra",
+    ));
 
     in_1.write(&mut writer, &FakeEntityConverter);
 
@@ -149,8 +158,11 @@ fn read_write_tuple_replica() {
     // Write
     let mut writer = BitWriter::new();
 
-    let in_1 =
-        SomeProtocol::TupleStringHolder(TupleStringHolder::new("hello world", "goodbye world", "extra"));
+    let in_1 = SomeProtocol::TupleStringHolder(TupleStringHolder::new(
+        "hello world",
+        "goodbye world",
+        "extra",
+    ));
 
     in_1.write(&mut writer, &FakeEntityConverter);
 
@@ -209,7 +221,6 @@ fn read_write_entity_replica() {
     in_1.vec_entity_1.set(&TestEntityConverter, &vec_entities);
     let in_1 = SomeProtocol::EntityPropertyHolder(in_1);
 
-
     in_1.write(&mut writer, &TestEntityConverter);
 
     let (buffer_length, buffer) = writer.flush();
@@ -225,25 +236,26 @@ fn read_write_entity_replica() {
     assert!(typed_in_1.entity_1.equals(&typed_out_1.entity_1));
     assert!(typed_in_1.vec_entity_1.equals(&typed_out_1.vec_entity_1));
 
-    let entity_handles = Vec::<EntityHandle>::from(
-        [EntityHandle::from_u64(1),
-            EntityHandle::from_u64(2),
-            EntityHandle::from_u64(3),
-        ]
-    );
+    let entity_handles = Vec::<EntityHandle>::from([
+        EntityHandle::from_u64(1),
+        EntityHandle::from_u64(2),
+        EntityHandle::from_u64(3),
+    ]);
     assert_eq!(typed_in_1.entities(), entity_handles);
     assert_eq!(typed_out_1.entities(), entity_handles);
 
     assert_eq!(typed_in_1.entity_1.get(&TestEntityConverter).unwrap(), 1);
     assert_eq!(typed_in_1.entity_1.handle().unwrap().to_u64(), 1);
 
-    assert_eq!(typed_in_1.vec_entity_1.get(&TestEntityConverter), VecDeque::<u64>::from(
-        [2, 3]
-    ));
+    assert_eq!(
+        typed_in_1.vec_entity_1.get(&TestEntityConverter),
+        VecDeque::<u64>::from([2, 3])
+    );
 
     assert_eq!(typed_out_1.entity_1.get(&TestEntityConverter).unwrap(), 1);
     assert_eq!(typed_out_1.entity_1.handle().unwrap().to_u64(), 1);
-    assert_eq!(typed_in_1.vec_entity_1.get(&TestEntityConverter), VecDeque::<u64>::from(
-        [2, 3]
-    ));
+    assert_eq!(
+        typed_in_1.vec_entity_1.get(&TestEntityConverter),
+        VecDeque::<u64>::from([2, 3])
+    );
 }

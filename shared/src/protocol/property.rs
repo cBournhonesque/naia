@@ -1,10 +1,8 @@
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Deref, DerefMut, Add, AddAssign, Mul, MulAssign, Sub};
+use std::ops::{Add, AddAssign, Deref, DerefMut, Mul, MulAssign, Sub};
 
-
-use ::serde::{Serialize, Deserialize, Serializer, Deserializer};
+use ::serde::{Deserialize, Deserializer, Serialize, Serializer};
 use naia_serde::{BitReader, BitWrite, BitWriter, Serde, SerdeErr};
-use crate::derive_serde;
 
 use crate::protocol::property_mutate::PropertyMutator;
 use crate::protocol::replicable_property::ReplicableProperty;
@@ -34,31 +32,46 @@ impl<T: Serde> Serde for Property<T> {
     }
 }
 
-impl<T: Serde> PartialEq for Property<T> where T: PartialEq {
+impl<T: Serde> PartialEq for Property<T>
+where
+    T: PartialEq,
+{
     fn eq(&self, other: &Self) -> bool {
         self.inner.eq(&other.inner)
     }
 }
 
-impl<T: Serde> Serialize for Property<T> where T: Serialize {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+impl<T: Serde> Serialize for Property<T>
+where
+    T: Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         self.inner.serialize(serializer)
     }
 }
 
-
 /// Deserialize the property according to the underlying field's deserializer
 /// Again, same issues as with Default, we had to use 0 as mutator index
-impl<'de, T: Serde> Deserialize<'de> for Property<T> where T: Deserialize<'de> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+impl<'de, T: Serde> Deserialize<'de> for Property<T>
+where
+    T: Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let inner = T::deserialize(deserializer)?;
         Ok(Self::new(inner, 0))
     }
 }
 
-
 impl<T: Serde> Sub for Property<T>
-    where T: Sub<Output = T> {
+where
+    T: Sub<Output = T>,
+{
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -68,9 +81,10 @@ impl<T: Serde> Sub for Property<T>
     }
 }
 
-
 impl<T: Serde> Add for Property<T>
-where T: Add<Output = T> {
+where
+    T: Add<Output = T>,
+{
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -81,15 +95,18 @@ where T: Add<Output = T> {
 }
 
 impl<T: Serde> AddAssign for Property<T>
-    where T: AddAssign {
-
+where
+    T: AddAssign,
+{
     fn add_assign(&mut self, rhs: Self) {
         *self.deref_mut() += rhs.inner;
     }
 }
 
 impl<T: Serde> Mul<f32> for Property<T>
-    where T: Mul<f32, Output = T> {
+where
+    T: Mul<f32, Output = T>,
+{
     type Output = Self;
 
     fn mul(self, rhs: f32) -> Self::Output {
@@ -100,22 +117,27 @@ impl<T: Serde> Mul<f32> for Property<T>
 }
 
 impl<T: Serde> MulAssign<f32> for Property<T>
-    where T: MulAssign<f32> {
-
+where
+    T: MulAssign<f32>,
+{
     fn mul_assign(&mut self, rhs: f32) {
         *self.deref_mut() *= rhs;
     }
 }
 
 impl<T: Serde> Debug for Property<T>
-where T: Debug {
+where
+    T: Debug,
+{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         self.inner.fmt(f)
     }
 }
 
 impl<T: Serde> Display for Property<T>
-where T: Display {
+where
+    T: Display,
+{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         self.inner.fmt(f)
     }
@@ -127,12 +149,13 @@ where T: Display {
 /// TODO: instead, impl Default on the replicate struct, and use new(default(), default(), etc.) or new_complete
 ///  so we dont need to implement default here
 impl<T: Serde> Default for Property<T>
-where T: Default {
+where
+    T: Default,
+{
     fn default() -> Self {
         Self::new(T::default(), 0)
     }
 }
-
 
 cfg_if! {
     if #[cfg(feature = "bevy_support")]
@@ -401,7 +424,6 @@ cfg_if! {
 //     }
 //
 // }
-
 
 impl<T: Serde> Property<T> {
     fn read_inner(reader: &mut BitReader) -> Result<T, SerdeErr> {

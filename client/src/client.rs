@@ -6,13 +6,13 @@ use tracing::debug_span;
 
 use naia_client_socket::Socket;
 
+use naia_shared::ExternalEntity;
 pub use naia_shared::{
     serde::{BitReader, BitWriter, Serde},
     ChannelIndex, ConnectionConfig, EntityHandle, EntityHandleConverter, PacketType, PingConfig,
     PingIndex, ProtocolKindType, Protocolize, ReplicateSafe, SharedConfig, SocketConfig,
     StandardHeader, Tick, Timer, Timestamp, WorldMutType, WorldRefType,
 };
-use naia_shared::ExternalEntity;
 
 use crate::{
     connection::{
@@ -50,12 +50,14 @@ impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Client<P, E, C> {
     pub fn new(client_config: &ClientConfig, shared_config: &SharedConfig<C>) -> Self {
         let handshake_manager = HandshakeManager::new(client_config.send_handshake_interval);
 
-        let tick_manager = shared_config
-            .tick_interval
-            .map(|duration| TickManager::new(
+        let tick_manager = shared_config.tick_interval.map(|duration| {
+            TickManager::new(
                 duration,
-                client_config.tick_manager_config.expect("Need to provide a TickManagerConfig")
-            ));
+                client_config
+                    .tick_manager_config
+                    .expect("Need to provide a TickManagerConfig"),
+            )
+        });
 
         Client {
             // Config
@@ -270,7 +272,7 @@ impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Client<P, E, C> {
         return self
             .tick_manager
             .as_ref()
-            .map(|tick_manager| tick_manager.client_internal_tick())
+            .map(|tick_manager| tick_manager.client_internal_tick());
     }
 
     /// Gets the current receiving tick of the Client (accounting for the jitter buffer)
@@ -278,7 +280,7 @@ impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Client<P, E, C> {
         return self
             .tick_manager
             .as_ref()
-            .map(|tick_manager| tick_manager.client_receiving_tick())
+            .map(|tick_manager| tick_manager.client_receiving_tick());
     }
 
     // Interpolation
@@ -497,7 +499,9 @@ impl<P: Protocolize, E: ExternalEntity, C: ChannelIndex> Client<P, E, C> {
             if let Some(duration) = self.shared_config.tick_interval {
                 Some(TickManager::new(
                     duration,
-                    self.client_config.tick_manager_config.expect("Need to provide a tick manager config"),
+                    self.client_config
+                        .tick_manager_config
+                        .expect("Need to provide a tick manager config"),
                 ))
             } else {
                 None

@@ -1,7 +1,7 @@
-use std::{collections::HashMap, hash::Hash};
 use std::fmt::Debug;
+use std::{collections::HashMap, hash::Hash};
 
-use naia_shared::{BigMap, EntityHandle, EntityHandleConverter, ProtocolKindType, ExternalEntity};
+use naia_shared::{BigMap, EntityHandle, EntityHandleConverter, ExternalEntity, ProtocolKindType};
 
 use crate::{protocol::global_entity_record::GlobalEntityRecord, room::RoomKey};
 

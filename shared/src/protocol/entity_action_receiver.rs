@@ -1,13 +1,12 @@
 use std::{
     collections::{HashMap, VecDeque},
-    hash::Hash,
     marker::PhantomData,
 };
 use tracing::debug;
 
 use crate::{
-    sequence_less_than, EntityAction, MessageId as ActionId, ProtocolKindType,
-    UnorderedReliableReceiver, ExternalEntity
+    sequence_less_than, EntityAction, ExternalEntity, MessageId as ActionId, ProtocolKindType,
+    UnorderedReliableReceiver,
 };
 
 // TODO: maybe make this ordered?

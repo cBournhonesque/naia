@@ -1,7 +1,7 @@
 use std::{default::Default, time::Duration};
 
-use naia_shared::ConnectionConfig;
 use crate::tick::tick_manager::TickManagerConfig;
+use naia_shared::ConnectionConfig;
 
 /// Contains Config properties which will be used by a Server or Client
 #[derive(Clone)]

@@ -1,6 +1,5 @@
-use naia_serde::{BitReader, BitWrite, BitWriter, Serde, SerdeErr};
 use crate::{EntityHandle, NetEntityHandleConverter, PropertyMutator};
-
+use naia_serde::{BitReader, BitWrite, BitWriter, Serde, SerdeErr};
 
 /// Trait for types that can be replicated and don't contain entity-related data
 pub trait ReplicableProperty {
@@ -21,7 +20,9 @@ pub trait ReplicableProperty {
 
     /// Given a cursor into incoming packet data, initializes the Property with
     /// the synced value
-    fn new_read(reader: &mut BitReader, mutator_index: u8) -> Result<Self, SerdeErr> where Self: Sized;
+    fn new_read(reader: &mut BitReader, mutator_index: u8) -> Result<Self, SerdeErr>
+    where
+        Self: Sized;
 
     /// Reads from a stream and immediately writes to a stream
     /// Used to buffer updates for later
@@ -43,10 +44,8 @@ pub trait ReplicableProperty {
     fn set_mutator(&mut self, mutator: &PropertyMutator);
 }
 
-
 /// Trait for types that can be replicated and contain entity-related data
 pub trait ReplicableEntityProperty {
-
     /// Create a new EntityProperty
     fn new(mutator_index: u8) -> Self;
 
@@ -61,7 +60,13 @@ pub trait ReplicableEntityProperty {
 
     /// Given a cursor into incoming packet data, initializes the Property with
     /// the synced value
-    fn new_read(reader: &mut BitReader, mutator_index: u8, converter: &dyn NetEntityHandleConverter) -> Result<Self, SerdeErr> where Self: Sized;
+    fn new_read(
+        reader: &mut BitReader,
+        mutator_index: u8,
+        converter: &dyn NetEntityHandleConverter,
+    ) -> Result<Self, SerdeErr>
+    where
+        Self: Sized;
 
     /// Reads from a stream and immediately writes to a stream
     /// Used to buffer updates for later
@@ -69,7 +74,11 @@ pub trait ReplicableEntityProperty {
 
     /// Given a cursor into incoming packet data, updates the Property with the
     /// synced value
-    fn read(&mut self, reader: &mut BitReader, converter: &dyn NetEntityHandleConverter,) -> Result<(), SerdeErr>;
+    fn read(
+        &mut self,
+        reader: &mut BitReader,
+        converter: &dyn NetEntityHandleConverter,
+    ) -> Result<(), SerdeErr>;
 
     // Comparison
 

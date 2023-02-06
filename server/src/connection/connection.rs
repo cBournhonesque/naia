@@ -4,7 +4,13 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use naia_shared::{sequence_greater_than, serde::{BitReader, BitWriter, SerdeErr}, BaseConnection, ChannelConfig, ChannelIndex, ConnectionConfig, EntityConverter, HostType, Instant, PacketType, PingManager, ProtocolIo, Protocolize, StandardHeader, Tick, WorldRefType, ExternalEntity};
+use naia_shared::{
+    sequence_greater_than,
+    serde::{BitReader, BitWriter, SerdeErr},
+    BaseConnection, ChannelConfig, ChannelIndex, ConnectionConfig, EntityConverter, ExternalEntity,
+    HostType, Instant, PacketType, PingManager, ProtocolIo, Protocolize, StandardHeader, Tick,
+    WorldRefType,
+};
 
 use crate::{
     protocol::{

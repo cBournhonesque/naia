@@ -1,6 +1,9 @@
 use std::{hash::Hash, marker::PhantomData};
 
-use naia_shared::{ChannelIndex, ExternalEntity, Protocolize, ReplicaMutWrapper, ReplicaRefWrapper, Replicate, ReplicateSafe, WorldMutType, WorldRefType};
+use naia_shared::{
+    ChannelIndex, ExternalEntity, Protocolize, ReplicaMutWrapper, ReplicaRefWrapper, Replicate,
+    ReplicateSafe, WorldMutType, WorldRefType,
+};
 
 use crate::{room::RoomKey, server::Server};
 

@@ -2,7 +2,7 @@ use crate::{BigMapKey, NetEntity, NetEntityHandleConverter};
 use naia_serde::{BitReader, BitWrite, BitWriter, Serde, SerdeErr};
 
 #[cfg(feature = "bevy_support")]
-use bevy_reflect::{Reflect, FromReflect};
+use bevy_reflect::{FromReflect, Reflect};
 
 // EntityHandle
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Default, Debug)]
@@ -29,20 +29,29 @@ impl Serde for EntityHandle {
     }
 }
 
-
 // TODO: create trait for this?
 
 impl EntityHandle {
-    pub(crate) fn write(&self, writer: &mut dyn BitWrite, converter: &dyn NetEntityHandleConverter) {
+    pub(crate) fn write(
+        &self,
+        writer: &mut dyn BitWrite,
+        converter: &dyn NetEntityHandleConverter,
+    ) {
         converter.handle_to_net_entity(self).ser(writer);
     }
 
-    pub(crate) fn read(reader: &mut BitReader, converter: &dyn NetEntityHandleConverter) -> Result<Self, SerdeErr> {
+    pub(crate) fn read(
+        reader: &mut BitReader,
+        converter: &dyn NetEntityHandleConverter,
+    ) -> Result<Self, SerdeErr> {
         let net_entity = NetEntity::de(reader)?;
         Ok(converter.net_entity_to_handle(&net_entity))
     }
 
-    pub(crate) fn read_write(reader: &mut BitReader, writer: &mut BitWriter) -> Result<(), SerdeErr> {
+    pub(crate) fn read_write(
+        reader: &mut BitReader,
+        writer: &mut BitWriter,
+    ) -> Result<(), SerdeErr> {
         NetEntity::de(reader)?.ser(writer);
         Ok(())
     }

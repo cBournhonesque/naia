@@ -5,7 +5,10 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use naia_shared::{ChannelIndex, ChannelSender, EntityAction, EntityActionReceiver, KeyGenerator, NetEntity, ProtocolKindType, Protocolize, ReliableSender, ExternalEntity};
+use naia_shared::{
+    ChannelIndex, ChannelSender, EntityAction, EntityActionReceiver, ExternalEntity, KeyGenerator,
+    NetEntity, ProtocolKindType, Protocolize, ReliableSender,
+};
 
 use crate::{
     protocol::{
@@ -459,7 +462,7 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> WorldChan
                         send_component_set.insert(*component);
                     }
                     if let ComponentChannel::Removing = component_channel {
-                        #[cfg(feature="debug")]
+                        #[cfg(feature = "debug")]
                         {
                             let e_u16: u16 = (*self.entity_to_net_entity(entity).unwrap()).into();
                             log::info!("have removing component channel for entity {:?}", e_u16);

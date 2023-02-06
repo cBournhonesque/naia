@@ -11,14 +11,13 @@ use naia_client::{
     Client as NaiaClient, EntityRef,
 };
 
+use crate::shared::ExternalEntity;
 use naia_bevy_shared::{WorldProxy, WorldRef};
 use naia_client::shared::{EntityHandle, EntityHandleConverter};
-use crate::shared::ExternalEntity;
 
 use super::state::State;
 
 // Client
-
 
 pub struct Client<'a, P: Protocolize, C: ChannelIndex> {
     world: &'a World,

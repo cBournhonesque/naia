@@ -21,9 +21,9 @@ cfg_if! {
 
 pub use naia_socket_shared::{Instant, LinkConditionerConfig, Random, SocketConfig};
 
+pub use crate::serde::Serde;
 pub use naia_derive::*;
 pub use naia_serde as serde;
-pub use crate::serde::derive_serde;
 
 mod backends;
 mod connection;
@@ -73,8 +73,8 @@ pub use protocol::{
     entity_action_type::EntityActionType,
     entity_handle::EntityHandle,
     entity_property::{
-        EntityConverter, EntityHandleConverter, EntityProperty, FakeEntityConverter,
-        NetEntityConverter, NetEntityHandleConverter, VecDequeEntityProperty, ExternalEntity,
+        EntityConverter, EntityHandleConverter, EntityProperty, ExternalEntity,
+        FakeEntityConverter, NetEntityConverter, NetEntityHandleConverter, VecDequeEntityProperty,
     },
     net_entity::NetEntity,
     property::Property,
@@ -86,7 +86,7 @@ pub use protocol::{
         ReplicaDynRefWrapper, ReplicaMutTrait, ReplicaMutWrapper, ReplicaRefTrait,
         ReplicaRefWrapper,
     },
-    replicable_property::{ReplicableProperty, ReplicableEntityProperty},
+    replicable_property::{ReplicableEntityProperty, ReplicableProperty},
     replicate::{Replicate, ReplicateSafe},
 };
 

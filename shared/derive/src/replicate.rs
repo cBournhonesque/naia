@@ -1,6 +1,9 @@
 use proc_macro2::{Punct, Spacing, Span, TokenStream};
 use quote::{format_ident, quote};
-use syn::{parse_macro_input, Data, DeriveInput, Fields, GenericArgument, Ident, Index, Lit, Member, Meta, Path, PathArguments, Result, Type, PathSegment, parse_str};
+use syn::{
+    parse_macro_input, parse_str, Data, DeriveInput, Fields, GenericArgument, Ident, Index, Lit,
+    Member, Meta, Path, PathArguments, PathSegment, Result, Type,
+};
 
 const UNNAMED_FIELD_PREFIX: &'static str = "unnamed_field_";
 
@@ -23,12 +26,8 @@ pub fn replicate_impl(input: proc_macro::TokenStream) -> proc_macro::TokenStream
     let property_enum_definition = property_enum(&enum_name, &properties);
 
     // Replica Methods
-    let new_complete_method = new_complete_method(
-        &replica_name,
-        &enum_name,
-        &properties,
-        &struct_type,
-    );
+    let new_complete_method =
+        new_complete_method(&replica_name, &enum_name, &properties, &struct_type);
     let read_method = read_method(
         &protocol_name,
         &replica_name,
@@ -53,12 +52,7 @@ pub fn replicate_impl(input: proc_macro::TokenStream) -> proc_macro::TokenStream
     let to_protocol_method = into_protocol_method(&protocol_name, &replica_name);
     let protocol_copy_method = protocol_copy_method(&protocol_name, &replica_name);
     let clone_method = clone_method(&replica_name, &properties, &struct_type);
-    let mirror_method = mirror_method(
-        &protocol_name,
-        &replica_name,
-        &properties,
-        &struct_type,
-    );
+    let mirror_method = mirror_method(&protocol_name, &replica_name, &properties, &struct_type);
     let set_mutator_method = set_mutator_method(&properties, &struct_type);
     let read_apply_update_method =
         read_apply_update_method(&protocol_kind_name, &enum_name, &properties, &struct_type);
@@ -163,7 +157,9 @@ fn get_field_name(property: &Property, index: usize, struct_type: &StructType) -
             };
             Member::from(index)
         }
-        _ => {panic!("The struct should not have any fields")}
+        _ => {
+            panic!("The struct should not have any fields")
+        }
     }
 }
 
@@ -201,7 +197,7 @@ impl Property {
     pub fn is_replicated(&self) -> bool {
         match self {
             Self::Normal(_) | Self::Entity(_) => true,
-            Self::NonReplicated(_) => false
+            Self::NonReplicated(_) => false,
         }
     }
 
@@ -217,11 +213,10 @@ impl Property {
         match self {
             Self::Normal(property) => &property.uppercase_variable_name,
             Self::Entity(property) => &property.uppercase_variable_name,
-            Self::NonReplicated(_) => panic!("Unused for non-replicated properties")
+            Self::NonReplicated(_) => panic!("Unused for non-replicated properties"),
         }
     }
 }
-
 
 /// Add the replicable properties
 /// (either Property<T>, EntityProperty, or a Container<EntityProperty>)
@@ -234,14 +229,14 @@ fn properties(input: &DeriveInput) -> Vec<Property> {
         if property_type == "EntityProperty" {
             fields.push(Property::entity(
                 variable_name.clone(),
-                parse_str::<Type>("EntityProperty").unwrap()
+                parse_str::<Type>("EntityProperty").unwrap(),
             ));
         }
         // VecDequeEntityProperty
         else if property_type == "VecDequeEntityProperty" {
             fields.push(Property::entity(
                 variable_name.clone(),
-                parse_str::<Type>("VecDequeEntityProperty").unwrap()
+                parse_str::<Type>("VecDequeEntityProperty").unwrap(),
             ));
         }
         // Property
@@ -251,12 +246,15 @@ fn properties(input: &DeriveInput) -> Vec<Property> {
                     fields.push(Property::normal(
                         variable_name.clone(),
                         inner_type.clone(),
-                        parse_str::<Type>("Property").unwrap()
+                        parse_str::<Type>("Property").unwrap(),
                     ));
                 }
             }
         } else {
-            fields.push(Property::nonreplicated(variable_name.clone(), field_type.clone()));
+            fields.push(Property::nonreplicated(
+                variable_name.clone(),
+                field_type.clone(),
+            ));
         }
     };
 
@@ -278,7 +276,8 @@ fn properties(input: &DeriveInput) -> Vec<Property> {
                     if let Type::Path(type_path) = &field.ty {
                         if let Some(property_seg) = type_path.path.segments.first() {
                             let property_type = property_seg.ident.clone();
-                            let variable_name = get_variable_name_for_unnamed_field(index, property_type.span());
+                            let variable_name =
+                                get_variable_name_for_unnamed_field(index, property_type.span());
                             add_fields(property_seg, &variable_name, &field.ty);
                         }
                     }
@@ -300,7 +299,7 @@ fn get_struct_type(input: &DeriveInput) -> StructType {
             Fields::Named(_) => StructType::Struct,
             Fields::Unnamed(_) => StructType::TupleStruct,
             Fields::Unit => StructType::UnitStruct,
-        }
+        };
     }
     panic!("Can only derive Replicate on a struct")
 }
@@ -535,7 +534,7 @@ pub fn new_complete_method(
                 let replicable_property_type = &property.replicable_property_type;
                 let uppercase_variant_name = &property.uppercase_variable_name;
                 match *struct_type {
-                    StructType::Struct =>  {
+                    StructType::Struct => {
                         quote! {
                             #field_name: <#replicable_property_type<#field_type>>::new(#field_name, #enum_name::#uppercase_variant_name as u8)
                         }
@@ -545,7 +544,9 @@ pub fn new_complete_method(
                             <#replicable_property_type<#field_type>>::new(#field_name, #enum_name::#uppercase_variant_name as u8)
                         }
                     }
-                    _ => {quote!{}}
+                    _ => {
+                        quote! {}
+                    }
                 }
             }
             Property::Entity(property) => {
@@ -553,7 +554,7 @@ pub fn new_complete_method(
                 let replicable_entity_property_type = &property.replicable_entity_property_type;
                 let uppercase_variant_name = &property.uppercase_variable_name;
                 match *struct_type {
-                    StructType::Struct =>  {
+                    StructType::Struct => {
                         quote! {
                              #field_name: <#replicable_entity_property_type>::new(#enum_name::#uppercase_variant_name as u8)
                         }
@@ -563,14 +564,16 @@ pub fn new_complete_method(
                             <#replicable_entity_property_type>::new(#enum_name::#uppercase_variant_name as u8)
                         }
                     }
-                    _ => {quote!{}}
+                    _ => {
+                        quote! {}
+                    }
                 }
             }
             Property::NonReplicated(property) => {
                 let field_name = &property.variable_name;
                 let field_type = &property.field_type;
                 match *struct_type {
-                    StructType::Struct =>  {
+                    StructType::Struct => {
                         quote! {
                              #field_name: <#field_type>::default()
                         }
@@ -580,7 +583,9 @@ pub fn new_complete_method(
                             <#field_type>::default()
                         }
                     }
-                    _ => {quote!{}}
+                    _ => {
+                        quote! {}
+                    }
                 }
             }
         };
@@ -740,7 +745,9 @@ pub fn read_create_update_method(
                     }
                 }
             }
-            Property::NonReplicated(_) => {continue;}
+            Property::NonReplicated(_) => {
+                continue;
+            }
         };
 
         let new_output_result = quote! {
@@ -802,7 +809,9 @@ fn read_apply_update_method(
                     }
                 }
             }
-            Property::NonReplicated(_) => {continue;}
+            Property::NonReplicated(_) => {
+                continue;
+            }
         };
 
         let new_output_result = quote! {
@@ -839,7 +848,9 @@ fn write_method(properties: &[Property], struct_type: &StructType) -> TokenStrea
                     <#replicable_entity_property_type>::write(&self.#field_name, bit_writer, converter);
                 }
             }
-            Property::NonReplicated(_) => {continue;}
+            Property::NonReplicated(_) => {
+                continue;
+            }
         };
 
         let new_output_result = quote! {
@@ -891,7 +902,9 @@ fn write_update_method(
                     }
                 }
             }
-            Property::NonReplicated(_) => {continue;}
+            Property::NonReplicated(_) => {
+                continue;
+            }
         };
 
         let new_output_result = quote! {

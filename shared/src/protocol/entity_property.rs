@@ -16,9 +16,9 @@ use crate::{
 pub trait ExternalEntity: Eq + Copy + Hash + Debug {}
 impl<T: Eq + Copy + Hash + Debug> ExternalEntity for T {}
 
+use crate::protocol::replicable_property::{ReplicableEntityProperty, ReplicableProperty};
 #[cfg(feature = "bevy_support")]
 use bevy_reflect::Reflect;
-use crate::protocol::replicable_property::{ReplicableEntityProperty, ReplicableProperty};
 
 #[derive(Clone, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "bevy_support", derive(Reflect))]
@@ -49,7 +49,6 @@ impl EntityProperty {
         *self.handle_prop = None;
     }
 }
-
 
 impl ReplicableEntityProperty for EntityProperty {
     fn new(mutator_index: u8) -> Self {
@@ -135,7 +134,6 @@ impl ReplicableEntityProperty for EntityProperty {
     }
 }
 
-
 // NOTE: I would have liked to implement this as
 // VecDeque<EntityProperty> so that I could simply re-use all the EntityProperty functions
 // Figure out a better way to re-use code
@@ -155,10 +153,17 @@ impl VecDequeEntityProperty {
     }
 
     pub fn get<E: ExternalEntity>(&self, handler: &dyn EntityHandleConverter<E>) -> VecDeque<E> {
-        self.0.iter().map(|handle| handler.handle_to_entity(handle)).collect()
+        self.0
+            .iter()
+            .map(|handle| handler.handle_to_entity(handle))
+            .collect()
     }
 
-    pub fn set<E: ExternalEntity>(&mut self, handler: &dyn EntityHandleConverter<E>, entities: &VecDeque<E>) {
+    pub fn set<E: ExternalEntity>(
+        &mut self,
+        handler: &dyn EntityHandleConverter<E>,
+        entities: &VecDeque<E>,
+    ) {
         let mut queue = VecDeque::<EntityHandle>::new();
         entities.iter().for_each(|e| {
             let new_handle = handler.entity_to_handle(e);
@@ -167,12 +172,20 @@ impl VecDequeEntityProperty {
         *self.0 = queue;
     }
 
-    pub fn push_front<E: ExternalEntity>(&mut self, handler: &dyn EntityHandleConverter<E>, entity: &E) {
+    pub fn push_front<E: ExternalEntity>(
+        &mut self,
+        handler: &dyn EntityHandleConverter<E>,
+        entity: &E,
+    ) {
         let new_handle = handler.entity_to_handle(entity);
         self.0.push_front(new_handle);
     }
 
-    pub fn push_back<E: ExternalEntity>(&mut self, handler: &dyn EntityHandleConverter<E>, entity: &E) {
+    pub fn push_back<E: ExternalEntity>(
+        &mut self,
+        handler: &dyn EntityHandleConverter<E>,
+        entity: &E,
+    ) {
         let new_handle = handler.entity_to_handle(entity);
         self.0.push_back(new_handle);
     }
@@ -180,12 +193,14 @@ impl VecDequeEntityProperty {
     // TODO: add back() pop_back() pop_front() front() ?
 }
 
-
 // TODO: maybe use a wrapper instead of directly using deque?
 //  because we cannot shadow some functions like 'new', and because Self has to be Sized
 impl ReplicableEntityProperty for VecDequeEntityProperty {
     fn new(mutator_index: u8) -> Self {
-        Self(Property::<VecDeque<EntityHandle>>::new(VecDeque::new(), mutator_index))
+        Self(Property::<VecDeque<EntityHandle>>::new(
+            VecDeque::new(),
+            mutator_index,
+        ))
     }
 
     fn mirror(&mut self, other: &Self) {
@@ -198,7 +213,11 @@ impl ReplicableEntityProperty for VecDequeEntityProperty {
         self.0.iter().for_each(|e| e.write(writer, converter));
     }
 
-    fn new_read(reader: &mut BitReader, mutator_index: u8, converter: &dyn NetEntityHandleConverter) -> Result<Self, SerdeErr> {
+    fn new_read(
+        reader: &mut BitReader,
+        mutator_index: u8,
+        converter: &dyn NetEntityHandleConverter,
+    ) -> Result<Self, SerdeErr> {
         let length_int = UnsignedVariableInteger::<5>::de(reader)?;
         let length_usize = length_int.get() as usize;
         let mut output = VecDeque::with_capacity(length_usize);
@@ -221,7 +240,11 @@ impl ReplicableEntityProperty for VecDequeEntityProperty {
         Ok(())
     }
 
-    fn read(&mut self, reader: &mut BitReader, converter: &dyn NetEntityHandleConverter) -> Result<(), SerdeErr> {
+    fn read(
+        &mut self,
+        reader: &mut BitReader,
+        converter: &dyn NetEntityHandleConverter,
+    ) -> Result<(), SerdeErr> {
         let length_int = UnsignedVariableInteger::<5>::de(reader)?;
         let length_usize = length_int.get() as usize;
         let mut output = VecDeque::with_capacity(length_usize);
@@ -254,13 +277,11 @@ impl Deref for VecDequeEntityProperty {
     }
 }
 
-impl DerefMut for VecDequeEntityProperty{
+impl DerefMut for VecDequeEntityProperty {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
-
-
 
 pub trait EntityHandleConverter<E: ExternalEntity> {
     fn handle_to_entity(&self, entity_handle: &EntityHandle) -> E;

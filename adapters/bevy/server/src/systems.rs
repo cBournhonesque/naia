@@ -1,3 +1,7 @@
+use super::{
+    events::{AuthorizationEvent, ConnectionEvent, DisconnectionEvent, MessageEvent},
+    resource::ServerResource,
+};
 use bevy_ecs::{
     entity::Entity,
     event::Events,
@@ -8,10 +12,6 @@ use bevy_ecs::{
 use naia_server::{
     shared::{ChannelIndex, Protocolize},
     Event, Server,
-};
-use super::{
-    events::{AuthorizationEvent, ConnectionEvent, DisconnectionEvent, MessageEvent},
-    resource::ServerResource,
 };
 
 pub fn before_receive_events<P: Protocolize, C: ChannelIndex>(world: &mut World) {

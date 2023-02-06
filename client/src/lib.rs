@@ -26,11 +26,11 @@ pub use client_config::ClientConfig;
 pub use command_history::CommandHistory;
 pub use error::NaiaClientError;
 pub use event::Event;
-pub use protocol::entity_ref::EntityRef;
 pub use protocol::entity_manager::EntityManager;
-pub use tick::tick_manager::{TickManager, TickManagerConfig};
-pub use tick::tick_queue::{TickQueue, ItemContainer};
+pub use protocol::entity_ref::EntityRef;
 pub use tick::tick_buffer_sender::TickBufferSender;
+pub use tick::tick_manager::{TickManager, TickManagerConfig};
+pub use tick::tick_queue::{ItemContainer, TickQueue};
 
 pub mod internal {
     pub use crate::connection::handshake_manager::{HandshakeManager, HandshakeState};

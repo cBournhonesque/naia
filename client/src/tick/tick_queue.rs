@@ -2,7 +2,6 @@ use std::{cmp::Ordering, collections::BinaryHeap};
 
 use naia_shared::{sequence_greater_than, Tick};
 
-
 /// A queue for items marked by tick, will only ever pop items from the queue if
 /// the tick has elapsed
 pub struct TickQueue<T> {

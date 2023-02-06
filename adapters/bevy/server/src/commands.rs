@@ -33,7 +33,6 @@ impl<P: Protocolize, C: ChannelIndex> Command<P, C> for UnsyncEntity {
     }
 }
 
-
 //// Despawn Entity ////
 
 pub(crate) struct DespawnEntity {

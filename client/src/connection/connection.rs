@@ -1,7 +1,11 @@
 use std::{collections::VecDeque, hash::Hash, net::SocketAddr, time::Duration};
 use tracing::{debug_span, trace_span};
 
-use naia_shared::{serde::{BitReader, BitWriter, OwnedBitReader}, BaseConnection, ChannelConfig, ChannelIndex, ConnectionConfig, HostType, Instant, PacketType, PingManager, ProtocolIo, Protocolize, StandardHeader, Tick, WorldMutType, ExternalEntity};
+use naia_shared::{
+    serde::{BitReader, BitWriter, OwnedBitReader},
+    BaseConnection, ChannelConfig, ChannelIndex, ConnectionConfig, ExternalEntity, HostType,
+    Instant, PacketType, PingManager, ProtocolIo, Protocolize, StandardHeader, Tick, WorldMutType,
+};
 
 use crate::{
     error::NaiaClientError,

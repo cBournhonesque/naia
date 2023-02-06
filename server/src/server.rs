@@ -15,10 +15,10 @@ use naia_shared::{
     ChannelIndex, EntityHandle, EntityHandleConverter, Tick,
 };
 pub use naia_shared::{
-    wrapping_diff, BaseConnection, BigMap, ConnectionConfig, Instant, KeyGenerator, ExternalEntity,
-    NetEntity, PacketType, PingConfig, PropertyMutate, PropertyMutator, ProtocolKindType, Protocolize,
-    Replicate, ReplicateSafe, SharedConfig, StandardHeader, Timer, Timestamp, WorldMutType,
-    WorldRefType,
+    wrapping_diff, BaseConnection, BigMap, ConnectionConfig, ExternalEntity, Instant, KeyGenerator,
+    NetEntity, PacketType, PingConfig, PropertyMutate, PropertyMutator, ProtocolKindType,
+    Protocolize, Replicate, ReplicateSafe, SharedConfig, StandardHeader, Timer, Timestamp,
+    WorldMutType, WorldRefType,
 };
 use tracing::debug_span;
 
@@ -256,17 +256,20 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> Server<P,
 
                     // check whether all entities are in scope for the connection
                     let all_entities_in_scope = {
-                        entities
-                            .iter()
-                            .all(|entity| {
-                                let is_entity_in_scope = connection.entity_manager.entity_channel_is_open(entity);
-                                #[cfg(feature="debug")]
-                                {
-                                    log::info!("is entity from message {:?} in scope: {}", message.kind().to_type_id(), is_entity_in_scope);
-                                }
+                        entities.iter().all(|entity| {
+                            let is_entity_in_scope =
+                                connection.entity_manager.entity_channel_is_open(entity);
+                            #[cfg(feature = "debug")]
+                            {
+                                log::info!(
+                                    "is entity from message {:?} in scope: {}",
+                                    message.kind().to_type_id(),
+                                    is_entity_in_scope
+                                );
+                            }
 
-                                is_entity_in_scope
-                            })
+                            is_entity_in_scope
+                        })
                     };
                     if all_entities_in_scope {
                         // All necessary entities are in scope, so send message
@@ -570,7 +573,7 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> Server<P,
         }
 
         // TODO: we can make this more efficient in the future by caching which Entities
-        // are in each User's scope
+        //  are in each User's scope
         for (_, user_connection) in self.user_connections.iter_mut() {
             // remove entity from user connection
             user_connection.entity_manager.despawn_entity(entity, false);

@@ -7,7 +7,13 @@ use std::{
     time::Duration,
 };
 
-use naia_shared::{message_list_header, serde::{BitCounter, BitWrite, BitWriter, Serde, UnsignedVariableInteger}, wrapping_diff, ChannelIndex, DiffMask, EntityAction, EntityActionType, EntityConverter, Instant, MessageId, MessageManager, NetEntity, NetEntityConverter, PacketIndex, PacketNotifiable, Protocolize, ReplicateSafe, WorldRefType, MTU_SIZE_BITS, ExternalEntity};
+use naia_shared::{
+    message_list_header,
+    serde::{BitCounter, BitWrite, BitWriter, Serde, UnsignedVariableInteger},
+    wrapping_diff, ChannelIndex, DiffMask, EntityAction, EntityActionType, EntityConverter,
+    ExternalEntity, Instant, MessageId, MessageManager, NetEntity, NetEntityConverter, PacketIndex,
+    PacketNotifiable, Protocolize, ReplicateSafe, WorldRefType, MTU_SIZE_BITS,
+};
 
 use crate::sequence_list::SequenceList;
 
@@ -65,7 +71,8 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> EntityMan
     }
 
     pub fn despawn_entity(&mut self, entity: &E, client_despawn: bool) {
-        self.world_channel.host_despawn_entity(entity, client_despawn);
+        self.world_channel
+            .host_despawn_entity(entity, client_despawn);
     }
 
     pub fn insert_component(&mut self, entity: &E, component: &P::Kind) {
@@ -339,7 +346,6 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> EntityMan
             EntityActionEvent::SpawnEntity(entity) => {
                 EntityActionType::SpawnEntity.ser(bit_writer);
 
-
                 // write net entity
                 self.world_channel
                     .entity_to_net_entity(entity)
@@ -352,10 +358,10 @@ impl<P: Protocolize, E: ExternalEntity + Send + Sync, C: ChannelIndex> EntityMan
                     None => Vec::new(),
                 };
 
-                #[cfg(feature="debug")]
+                #[cfg(feature = "debug")]
                 {
-                    let e_u16: u16 = (*self.world_channel
-                        .entity_to_net_entity(entity).unwrap()).into();
+                    let e_u16: u16 =
+                        (*self.world_channel.entity_to_net_entity(entity).unwrap()).into();
                     log::info!("write on server SpawnEntity for net entity({})", e_u16);
                 }
 

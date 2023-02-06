@@ -4,7 +4,13 @@ use std::{
 };
 use tracing::{trace, trace_span};
 
-use naia_shared::{message_list_header, serde::{BitReader, Serde, SerdeErr, UnsignedVariableInteger}, BigMap, ChannelIndex, EntityAction, EntityActionReceiver, EntityActionType, EntityHandle, EntityHandleConverter, MessageId, NetEntity, NetEntityHandleConverter, Protocolize, ProtocolKindType, Tick, WorldMutType, ExternalEntity};
+use naia_shared::{
+    message_list_header,
+    serde::{BitReader, Serde, SerdeErr, UnsignedVariableInteger},
+    BigMap, ChannelIndex, EntityAction, EntityActionReceiver, EntityActionType, EntityHandle,
+    EntityHandleConverter, ExternalEntity, MessageId, NetEntity, NetEntityHandleConverter,
+    ProtocolKindType, Protocolize, Tick, WorldMutType,
+};
 
 use crate::{error::NaiaClientError, event::Event};
 
@@ -92,7 +98,7 @@ impl<P: Protocolize, E: ExternalEntity> EntityManager<P, E> {
             EntityActionType::SpawnEntity => {
                 // read entity
                 let net_entity = NetEntity::de(reader)?;
-                #[cfg(feature="debug")]
+                #[cfg(feature = "debug")]
                 {
                     let e_u16: u16 = net_entity.into();
                     log::info!("read spawn net_entity on client: {}", e_u16);
@@ -111,10 +117,13 @@ impl<P: Protocolize, E: ExternalEntity> EntityManager<P, E> {
                     component_kinds.push(new_component_kind);
                 }
 
-                #[cfg(feature="debug")]
+                #[cfg(feature = "debug")]
                 {
                     let e_u16: u16 = net_entity.into();
-                    log::info!("finished reading all components associated with net_entity: {}", e_u16);
+                    log::info!(
+                        "finished reading all components associated with net_entity: {}",
+                        e_u16
+                    );
                 }
 
                 self.receiver.buffer_action(
@@ -156,11 +165,15 @@ impl<P: Protocolize, E: ExternalEntity> EntityManager<P, E> {
                 let component_kind = P::Kind::de(reader)?;
                 trace_span!("component", id = ?component_kind.to_type_id());
 
-                #[cfg(feature="debug")]
+                #[cfg(feature = "debug")]
                 {
                     use naia_shared::ProtocolKindType;
                     let e_u16: u16 = net_entity.into();
-                    log::info!("read remove component {:?} net_entity on client: {}", component_kind.to_type_id(), e_u16);
+                    log::info!(
+                        "read remove component {:?} net_entity on client: {}",
+                        component_kind.to_type_id(),
+                        e_u16
+                    );
                 }
 
                 self.receiver.buffer_action(
@@ -187,7 +200,7 @@ impl<P: Protocolize, E: ExternalEntity> EntityManager<P, E> {
         for action in incoming_actions {
             match action {
                 EntityAction::SpawnEntity(net_entity, components) => {
-                    #[cfg(feature="debug")]
+                    #[cfg(feature = "debug")]
                     {
                         let e_u16: u16 = net_entity.into();
                         log::info!("spawn net_entity on client: {}", e_u16);
@@ -251,7 +264,7 @@ impl<P: Protocolize, E: ExternalEntity> EntityManager<P, E> {
                     }
                 }
                 EntityAction::InsertComponent(net_entity, component_kind) => {
-                    #[cfg(feature="debug")]
+                    #[cfg(feature = "debug")]
                     {
                         let e_u16: u16 = net_entity.into();
                         log::info!("insert component for net_entity: {}", e_u16);

@@ -2,13 +2,13 @@ use std::{collections::HashMap, hash::Hash, marker::PhantomData, net::SocketAddr
 
 use ring::{hmac, rand};
 
+use naia_shared::ExternalEntity;
 pub use naia_shared::{
     serde::{BitReader, BitWriter, Serde, SerdeErr},
     wrapping_diff, BaseConnection, ChannelIndex, ConnectionConfig, FakeEntityConverter, Instant,
     KeyGenerator, PacketType, PropertyMutate, PropertyMutator, ProtocolKindType, Protocolize,
     Replicate, ReplicateSafe, SharedConfig, StandardHeader, Timer, WorldMutType, WorldRefType,
 };
-use naia_shared::ExternalEntity;
 
 use crate::cache_map::CacheMap;
 
